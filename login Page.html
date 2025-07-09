@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cute Login Page</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+        
+        :root {
+            --primary: #FF9AA2;
+            --secondary: #FFB7B2;
+            --accent: #FFDAC1;
+            --text: #5E5E5E;
+            --white: #FFFFFF;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Nunito', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background-color: var(--white);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        .login-container::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: -30px;
+            width: 100px;
+            height: 100px;
+            background-color: var(--primary);
+            opacity: 0.3;
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-header h1 {
+            color: var(--primary);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .login-header p {
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+        
+        .login-logo img {
+            width: 50px;
+            height: 50px;
+        }
+        
+        .login-form {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-group {
+            flex: 1;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #E0E0E0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #F9F9F9;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(255, 154, 162, 0.2);
+        }
+        
+        .password-wrapper {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text);
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-password:hover {
+            opacity: 1;
+            color: var(--primary);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background-color: var(--primary);
+            color: var(--white);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #FF7E88;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 15px rgba(255, 154, 162, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+        }
+        
+        .remember-me input {
+            margin-right: 5px;
+        }
+        
+        .remember-me label {
+            margin-bottom: 0;
+            font-size: 0.8rem;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            color: var(--text);
+            opacity: 0.7;
+            font-size: 0.9rem;
+            padding: 0 5px;
+        }
+        
+        .forgot-password {
+            font-size: 0.8rem;
+            color: var(--primary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+        
+        .login-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: var(--text);
+        }
+        
+        .login-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.7rem;
+            color: var(--text);
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+            
+            .login-header h1 {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="login-logo">
+                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/fded0771-e887-4329-8493-debcd910a160.png" alt="Cute panda mascot wearing heart-shaped sunglasses" />
+            </div>
+            <h1>Welcome Back!</h1>
+            <p>Please login to continue to your account</p>
+        </div>
+        
+        <form class="login-form" id="loginForm">
+            <div class="form-group">
+                <input type="text" id="loginId" class="form-control" placeholder="email address or phone number" required>
+            </div>
+            
+            <div class="form-group">
+                <div class="password-wrapper">
+                    <input type="password" id="password" class="form-control" placeholder="password" required>
+                    <button type="button" class="toggle-password" id="togglePassword">Show</button>
+                </div>
+            </div>
+            
+            <div class="remember-forgot">
+                <div class="remember-me">
+                    <input type="checkbox" id="remember">
+                    <label for="remember">Remember me</label>
+                </div>
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+            
+            <button type="submit" class="btn">Login</button>
+            
+            <div class="login-footer">
+                Don't have an account? <a href="#">Sign up</a>
+            </div>
+        </form>
+        
+        <div class="copyright">
+            © Fahim Bhuiyan 2025
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+            
+            // Toggle password visibility
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.textContent = type === 'password' ? 'Show' : 'Hide';
+            });
+            
+            // Form submission
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const loginId = document.getElementById('loginId').value;
+                const password = passwordInput.value;
+                const rememberMe = document.getElementById('remember').checked;
+                
+                // Basic validation
+                if (!loginId) {
+                    alert('Please enter your email or phone');
+                    return;
+                }
+                
+                if (!password) {
+                    alert('Please enter your password');
+                    return;
+                }
+                
+                // Here you would typically make an AJAX request to your backend
+                console.log('Login attempt with:', { email, phone, password, rememberMe });
+                
+                // Simulate successful login
+                alert('Login successful! (This is a demo)');
+            });
+            
+            // Add cute hover effect to form inputs
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.querySelector('label').style.color = 'var(--primary)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.querySelector('label').style.color = 'var(--text)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
