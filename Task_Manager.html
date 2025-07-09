@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMaster - Productivity Simplified</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom CSS for enhanced UI */
+        .priority-high {
+            background-color: rgba(239, 68, 68, 0.2);
+            border-left: 4px solid rgb(239, 68, 68);
+        }
+        .priority-medium {
+            background-color: rgba(234, 179, 8, 0.2);
+            border-left: 4px solid rgb(234, 179, 8);
+        }
+        .priority-low {
+            background-color: rgba(34, 197, 94, 0.2);
+            border-left: 4px solid rgb(34, 197, 94);
+        }
+        .task-completed {
+            background-color: rgba(156, 163, 175, 0.1);
+            color: rgba(156, 163, 175, 0.8);
+        }
+        .task-completed .task-title {
+            text-decoration: line-through;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        .tag-work {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: rgb(59, 130, 246);
+        }
+        .tag-personal {
+            background-color: rgba(168, 85, 247, 0.2);
+            color: rgb(168, 85, 247);
+        }
+        .tag-study {
+            background-color: rgba(22, 163, 74, 0.2);
+            color: rgb(22, 163, 74);
+        }
+        .tag-other {
+            background-color: rgba(107, 114, 128, 0.2);
+            color: rgb(107, 114, 128);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 dark:text-white transition-all">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">TaskMaster</h1>
+                <p class="text-gray-500 dark:text-gray-400">Your productivity companion</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <svg id="theme-icon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                </button>
+                <button id="add-task-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Add Task
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Filters/Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                        <h2 class="font-semibold mb-4 text-lg">Filters</h2>
+                        <div class="space-y-2">
+                            <button class="filter-btn w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" data-filter="all">All Tasks</button>
+                            <button class="filter-btn w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" data-filter="completed">Completed</button>
+                            <button class="filter-btn w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" data-filter="pending">Pending</button>
+                            <button class="filter-btn w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" data-filter="today">Due Today</button>
+                            <button class="filter-btn w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" data-filter="week">Due This Week</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                        <h2 class="font-semibold mb-4 text-lg">Categories</h2>
+                        <div class="space-y-2">
+                            <button class="category-btn w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" data-category="all">All Categories</button>
+                            <button class="category-btn w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center" data-category="work">
+                                <span class="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
+                                Work
+                            </button>
+                            <button class="category-btn w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center" data-category="personal">
+                                <span class="w-2 h-2 rounded-full bg-purple-500 mr-2"></span>
+                                Personal
+                            </button>
+                            <button class="category-btn w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center" data-category="study">
+                                <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                                Study
+                            </button>
+                            <button class="category-btn w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center" data-category="other">
+                                <span class="w-2 h-2 rounded-full bg-gray-500 mr-2"></span>
+                                Other
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="lg:col-span-3">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-semibold text-lg">Tasks</h2>
+                        <div class="relative">
+                            <input type="text" id="task-search" placeholder="Search tasks..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600">
+                            <svg class="w-5 h-5 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center mb-4">
+                        <label class="mr-3">Sort:</label>
+                        <select id="sort-tasks" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600">
+                            <option value="creation-desc">Newest First</option>
+                            <option value="creation-asc">Oldest First</option>
+                            <option value="due-asc">Due Date (Soonest)</option>
+                            <option value="due-desc">Due Date (Latest)</option>
+                            <option value="priority">Priority</option>
+                        </select>
+                    </div>
+
+                    <div id="tasks-container" class="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
+                        <!-- Tasks will be dynamically inserted here -->
+                        <div class="text-center py-10 text-gray-500" id="no-tasks-message">
+                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            <p>No tasks found. Add your first task to get started!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Task Modal -->
+    <div id="task-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
+            <div class="flex justify-between items-center border-b p-4 dark:border-gray-700">
+                <h3 class="text-lg font-semibold" id="modal-title">Add New Task</h3>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <form id="task-form" class="p-4">
+                <input type="hidden" id="task-id">
+                <div class="mb-4">
+                    <label for="task-title" class="block mb-2">Title*</label>
+                    <input type="text" id="task-title" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div class="mb-4">
+                    <label for="task-description" class="block mb-2">Description</label>
+                    <textarea id="task-description" rows="3" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="task-due" class="block mb-2">Due Date</label>
+                        <input type="date" id="task-due" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600">
+                    </div>
+                    <div>
+                        <label for="task-priority" class="block mb-2">Priority</label>
+                        <select id="task-priority" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block mb-2">Category</label>
+                    <div class="flex flex-wrap gap-2">
+                        <input type="radio" id="category-work" name="task-category" value="work" class="hidden peer" checked>
+                        <label for="category-work" class="tag-work px-3 py-1 rounded-full text-sm cursor-pointer peer-checked:ring-2 peer-checked:ring-blue-500">Work</label>
+                        
+                        <input type="radio" id="category-personal" name="task-category" value="personal" class="hidden peer">
+                        <label for="category-personal" class="tag-personal px-3 py-1 rounded-full text-sm cursor-pointer peer-checked:ring-2 peer-checked:ring-purple-500">Personal</label>
+                        
+                        <input type="radio" id="category-study" name="task-category" value="study" class="hidden peer">
+                        <label for="category-study" class="tag-study px-3 py-1 rounded-full text-sm cursor-pointer peer-checked:ring-2 peer-checked:ring-green-500">Study</label>
+                        
+                        <input type="radio" id="category-other" name="task-category" value="other" class="hidden peer">
+                        <label for="category-other" class="tag-other px-3 py-1 rounded-full text-sm cursor-pointer peer-checked:ring-2 peer-checked:ring-gray-500">Other</label>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" id="cancel-task" class="px-4 py-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Task Management App
+        document.addEventListener('DOMContentLoaded', function() {
+            // Theme Toggle
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+            
+            // Check for saved theme preference or use the system preference
+            const currentTheme = localStorage.getItem('theme') || 
+                                (prefersDarkScheme.matches ? 'dark' : 'light');
+            document.body.classList.toggle('dark', currentTheme === 'dark');
+            
+            // Update the icon based on theme
+            function updateThemeIcon() {
+                if (document.body.classList.contains('dark')) {
+                    themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
+                } else {
+                    themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+                }
+            }
+            updateThemeIcon();
+            
+            themeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark');
+                const theme = document.body.classList.contains('dark') ? 'dark' : 'light';
+                localStorage.setItem('theme', theme);
+                updateThemeIcon();
+            });
+            
+            // Task Data Store
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            
+            // DOM Elements
+            const tasksContainer = document.getElementById('tasks-container');
+            const noTasksMessage = document.getElementById('no-tasks-message');
+            const taskForm = document.getElementById('task-form');
+            const taskModal = document.getElementById('task-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const addTaskBtn = document.getElementById('add-task-btn');
+            const closeModal = document.getElementById('close-modal');
+            const cancelTaskBtn = document.getElementById('cancel-task');
+            const taskSearch = document.getElementById('task-search');
+            const sortTasks = document.getElementById('sort-tasks');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const categoryButtons = document.querySelectorAll('.category-btn');
+            
+            // Current filters
+            let currentFilter = 'all';
+            let currentCategory = 'all';
+            let currentSearch = '';
+            let currentSort = 'creation-desc';
+            
+            // Initialize the app
+            renderTasks();
+            
+            // Event Listeners
+            addTaskBtn.addEventListener('click', () => openTaskModal());
+            closeModal.addEventListener('click', () => closeTaskModal());
+            cancelTaskBtn.addEventListener('click', () => closeTaskModal());
+            
+            taskForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveTask();
+            });
+            
+            taskSearch.addEventListener('input', function(e) {
+                currentSearch = e.target.value.toLowerCase();
+                renderTasks();
+            });
+            
+            sortTasks.addEventListener('change', function(e) {
+                currentSort = e.target.value;
+                renderTasks();
+            });
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    currentFilter = this.dataset.filter;
+                    renderTasks();
+                    // Update active state
+                    filterButtons.forEach(btn => btn.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'font-medium'));
+                    this.classList.add('bg-gray-100', 'dark:bg-gray-700', 'font-medium');
+                });
+            });
+            
+            categoryButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    currentCategory = this.dataset.category;
+                    renderTasks();
+                    // Update active state
+                    categoryButtons.forEach(btn => btn.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'font-medium'));
+                    this.classList.add('bg-gray-100', 'dark:bg-gray-700', 'font-medium');
+                });
+            });
+            
+            // Set 'All Tasks' as default active filter
+            document.querySelector('.filter-btn[data-filter="all"]').classList.add('bg-gray-100', 'dark:bg-gray-700', 'font-medium');
+            document.querySelector('.category-btn[data-category="all"]').classList.add('bg-gray-100', 'dark:bg-gray-700', 'font-medium');
+            
+            // Functions
+            function openTaskModal(taskId = null) {
+                if (taskId) {
+                    // Edit mode
+                    modalTitle.textContent = 'Edit Task';
+                    const task = tasks.find(t => t.id === taskId);
+                    document.getElementById('task-id').value = task.id;
+                    document.getElementById('task-title').value = task.title;
+                    document.getElementById('task-description').value = task.description || '';
+                    document.getElementById('task-due').value = task.dueDate || '';
+                    document.getElementById('task-priority').value = task.priority || 'low';
+                    
+                    // Set category radio button
+                    const category = task.category || 'work';
+                    document.getElementById(`category-${category}`).checked = true;
+                } else {
+                    // Add mode
+                    modalTitle.textContent = 'Add New Task';
+                    document.getElementById('task-id').value = '';
+                    document.getElementById('task-title').value = '';
+                    document.getElementById('task-description').value = '';
+                    document.getElementById('task-due').value = '';
+                    document.getElementById('task-priority').value = 'low';
+                    document.getElementById('category-work').checked = true;
+                }
+                
+                taskModal.classList.remove('hidden');
+            }
+            
+            function closeTaskModal() {
+                taskModal.classList.add('hidden');
+                taskForm.reset();
+            }
+            
+            function saveTask() {
+                const taskId = document.getElementById('task-id').value;
+                const title = document.getElementById('task-title').value.trim();
+                const description = document.getElementById('task-description').value.trim();
+                const dueDate = document.getElementById('task-due').value;
+                const priority = document.getElementById('task-priority').value;
+                const category = document.querySelector('input[name="task-category"]:checked').value;
+                
+                if (!title) {
+                    alert('Task title is required!');
+                    return;
+                }
+                
+                if (taskId) {
+                    // Update existing task
+                    const taskIndex = tasks.findIndex(t => t.id === taskId);
+                    if (taskIndex !== -1) {
+                        tasks[taskIndex] = {
+                            ...tasks[taskIndex],
+                            title,
+                            description,
+                            dueDate,
+                            priority,
+                            category
+                        };
+                    }
+                } else {
+                    // Add new task
+                    const newTask = {
+                        id: Date.now().toString(),
+                        title,
+                        description,
+                        dueDate,
+                        priority,
+                        category,
+                        completed: false,
+                        createdAt: new Date().toISOString()
+                    };
+                    tasks.unshift(newTask);
+                    
+                    // Show notification if due date is today
+                    checkDueDateNotification(newTask);
+                }
+                
+                saveTasksToLocalStorage();
+                renderTasks();
+                closeTaskModal();
+            }
+            
+            function deleteTask(taskId) {
+                if (confirm('Are you sure you want to delete this task?')) {
+                    tasks = tasks.filter(task => task.id !== taskId);
+                    saveTasksToLocalStorage();
+                    renderTasks();
+                }
+            }
+            
+            function toggleTaskComplete(taskId) {
+                const taskIndex = tasks.findIndex(t => t.id === taskId);
+                if (taskIndex !== -1) {
+                    tasks[taskIndex].completed = !tasks[taskIndex].completed;
+                    saveTasksToLocalStorage();
+                    renderTasks();
+                }
+            }
+            
+            function saveTasksToLocalStorage() {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+            
+            function renderTasks() {
+                // Apply filters, search and sort
+                let filteredTasks = [...tasks];
+                
+                // Apply filter
+                if (currentFilter === 'completed') {
+                    filteredTasks = filteredTasks.filter(task => task.completed);
+                } else if (currentFilter === 'pending') {
+                    filteredTasks = filteredTasks.filter(task => !task.completed);
+                } else if (currentFilter === 'today') {
+                    const today = new Date().toISOString().split('T')[0];
+                    filteredTasks = filteredTasks.filter(task => task.dueDate === today);
+                } else if (currentFilter === 'week') {
+                    const today = new Date();
+                    const nextWeek = new Date(today);
+                    nextWeek.setDate(today.getDate() + 7);
+                    
+                    filteredTasks = filteredTasks.filter(task => {
+                        if (!task.dueDate) return false;
+                        const taskDate = new Date(task.dueDate);
+                        return taskDate >= today && taskDate <= nextWeek;
+                    });
+                }
+                
+                // Apply category filter
+                if (currentCategory !== 'all') {
+                    filteredTasks = filteredTasks.filter(task => task.category === currentCategory);
+                }
+                
+                // Apply search
+                if (currentSearch) {
+                    filteredTasks = filteredTasks.filter(task => 
+                        task.title.toLowerCase().includes(currentSearch) || 
+                        (task.description && task.description.toLowerCase().includes(currentSearch))
+                    );
+                }
+                
+                // Apply sorting
+                filteredTasks.sort((a, b) => {
+                    if (currentSort === 'creation-desc') {
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                    } else if (currentSort === 'creation-asc') {
+                        return new Date(a.createdAt) - new Date(b.createdAt);
+                    } else if (currentSort === 'due-asc') {
+                        if (!a.dueDate && !b.dueDate) return 0;
+                        if (!a.dueDate) return 1;
+                        if (!b.dueDate) return -1;
+                        return new Date(a.dueDate) - new Date(b.dueDate);
+                    } else if (currentSort === 'due-desc') {
+                        if (!a.dueDate && !b.dueDate) return 0;
+                        if (!a.dueDate) return 1;
+                        if (!b.dueDate) return -1;
+                        return new Date(b.dueDate) - new Date(a.dueDate);
+                    } else if (currentSort === 'priority') {
+                        const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
+                        return (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
+                    }
+                    return 0;
+                });
+                
+                // Clear existing tasks
+                tasksContainer.innerHTML = '';
+                
+                // Render tasks or show no tasks message
+                if (filteredTasks.length === 0) {
+                    tasksContainer.appendChild(noTasksMessage);
+                    noTasksMessage.classList.remove('hidden');
+                } else {
+                    noTasksMessage.classList.add('hidden');
+                    filteredTasks.forEach(task => {
+                        const taskElement = createTaskElement(task);
+                        tasksContainer.appendChild(taskElement);
+                    });
+                }
+            }
+            
+            function createTaskElement(task) {
+                const taskElement = document.createElement('div');
+                taskElement.className = `group bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex items-start justify-between transition-all ${task.completed ? 'task-completed' : ''}`;
+                
+                if (task.priority === 'high') {
+                    taskElement.classList.add('priority-high');
+                } else if (task.priority === 'medium') {
+                    taskElement.classList.add('priority-medium');
+                } else if (task.priority === 'low') {
+                    taskElement.classList.add('priority-low');
+                }
+                
+                // Task content
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'flex-grow pr-4';
+                
+                // Title and category
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'flex items-center mb-1';
+                
+                const title = document.createElement('h3');
+                title.className = 'task-title font-semibold text-lg';
+                title.textContent = task.title;
+                
+                const categoryBadge = document.createElement('span');
+                categoryBadge.className = `ml-2 text-xs px-2 py-0.5 rounded-full ${'tag-' + task.category}`;
+                
+                switch(task.category) {
+                    case 'work': 
+                        categoryBadge.textContent = 'Work';
+                        break;
+                    case 'personal': 
+                        categoryBadge.textContent = 'Personal';
+                        break;
+                    case 'study': 
+                        categoryBadge.textContent = 'Study';
+                        break;
+                    default: 
+                        categoryBadge.textContent = 'Other';
+                }
+                
+                titleDiv.appendChild(title);
+                if (!task.completed) {
+                    titleDiv.appendChild(categoryBadge);
+                }
+                
+                // Description
+                const description = document.createElement('p');
+                description.className = 'text-gray-600 dark:text-gray-400 mb-1';
+                description.textContent = task.description || 'No description';
+                
+                // Due date
+                const dueDateDiv = document.createElement('div');
+                dueDateDiv.className = 'flex items-center text-sm mt-2';
+                
+                if (task.dueDate) {
+                    const today = new Date();
+                    const dueDate = new Date(task.dueDate);
+                    const isOverdue = !task.completed && dueDate < today && dueDate.toDateString() !== today.toDateString();
+                    
+                    const icon = document.createElement('svg');
+                    icon.className = 'w-4 h-4 mr-1';
+                    icon.setAttribute('fill', 'none');
+                    icon.setAttribute('stroke', 'currentColor');
+                    icon.setAttribute('viewBox', '0 0 24 24');
+                    
+                    if (isOverdue) {
+                        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
+                        dueDateDiv.classList.add('text-red-500');
+                    } else {
+                        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>';
+                        dueDateDiv.classList.add('text-gray-500', 'dark:text-gray-400');
+                    }
+                    
+                    const formattedDate = new Date(task.dueDate).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric',
+                        year: dueDate.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+                    });
+                    
+                    dueDateDiv.appendChild(icon);
+                    dueDateDiv.appendChild(document.createTextNode(formattedDate));
+                }
+                
+                // Priority
+                const priorityDiv = document.createElement('div');
+                priorityDiv.className = 'flex items-center text-sm mt-1';
+                
+                if (task.priority && !task.completed) {
+                    const icon = document.createElement('svg');
+                    icon.className = 'w-4 h-4 mr-1';
+                    icon.setAttribute('fill', 'none');
+                    icon.setAttribute('stroke', 'currentColor');
+                    icon.setAttribute('viewBox', '0 0 24 24');
+                    
+                    if (task.priority === 'high') {
+                        priorityDiv.classList.add('text-red-500');
+                        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>';
+                        priorityDiv.textContent = 'High';
+                    } else if (task.priority === 'medium') {
+                        priorityDiv.classList.add('text-yellow-500');
+                        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>';
+                        priorityDiv.textContent = 'Medium';
+                    } else {
+                        priorityDiv.classList.add('text-green-500');
+                        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>';
+                        priorityDiv.textContent = 'Low';
+                    }
+                    
+                    priorityDiv.insertBefore(icon, priorityDiv.firstChild);
+                }
+                
+                // Assemble content
+                contentDiv.appendChild(titleDiv);
+                contentDiv.appendChild(description);
+                
+                if (task.dueDate) {
+                    contentDiv.appendChild(dueDateDiv);
+                }
+                
+                if (task.priority && !task.completed) {
+                    contentDiv.appendChild(priorityDiv);
+                }
+                
+                // Actions
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'flex flex-col items-center space-y-2';
+                
+                // Complete toggle
+                const completeBtn = document.createElement('button');
+                completeBtn.className = 'p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700';
+                completeBtn.innerHTML = task.completed 
+                    ? '<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>' 
+                    : '<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>';
+                completeBtn.onclick = () => toggleTaskComplete(task.id);
+                
+                // Edit button
+                const editBtn = document.createElement('button');
+                editBtn.className = 'p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition-opacity';
+                editBtn.innerHTML = '<svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
+                editBtn.onclick = () => openTaskModal(task.id);
+                
+                // Delete button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition-opacity';
+                deleteBtn.innerHTML = '<svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
+                deleteBtn.onclick = () => deleteTask(task.id);
+                
+                actionsDiv.appendChild(completeBtn);
+                actionsDiv.appendChild(editBtn);
+                actionsDiv.appendChild(deleteBtn);
+                
+                // Complete all elements
+                taskElement.appendChild(contentDiv);
+                taskElement.appendChild(actionsDiv);
+                
+                return taskElement;
+            }
+            
+            function checkDueDateNotification(task) {
+                if (!task.dueDate || task.completed) return;
+                
+                const today = new Date().toISOString().split('T')[0];
+                if (task.dueDate === today) {
+                    setTimeout(() => {
+                        alert(`Reminder: Task "${task.title}" is due today!`);
+                    }, 1000);
+                }
+            }
+            
+            // Check for overdue tasks on load
+            function checkOverdueTasks() {
+                const today = new Date();
+                tasks.forEach(task => {
+                    if (!task.completed && task.dueDate) {
+                        const dueDate = new Date(task.dueDate);
+                        if (dueDate < today && dueDate.toDateString() !== today.toDateString()) {
+                            console.log(`Task "${task.title}" is overdue!`);
+                        }
+                    }
+                });
+            }
+            checkOverdueTasks();
+            
+            // Check for due tasks every hour
+            setInterval(checkOverdueTasks, 3600000);
+        });
+    </script>
+</body>
+</html>
