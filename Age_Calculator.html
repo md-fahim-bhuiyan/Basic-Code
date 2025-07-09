@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Age Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .calculator-container {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .calculator-container:hover {
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        .birthday-animation {
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+    </style>
+</head>
+<body class="font-sans flex items-center justify-center p-4">
+    <div class="calculator-container bg-white rounded-xl p-8 max-w-md w-full">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Age Calculator</h1>
+            <p class="text-gray-600">Discover your exact age down to the day</p>
+        </div>
+
+        <div class="mb-6">
+            <label for="birthdate" class="block text-sm font-medium text-gray-700 mb-2">Enter your birthdate:</label>
+            <div class="relative">
+                <input type="date" id="birthdate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <p id="date-error" class="text-red-500 text-xs mt-1 hidden">Birthdate cannot be in the future</p>
+        </div>
+
+        <button id="calculate-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 transform hover:scale-101">
+            Calculate Age
+        </button>
+
+        <div id="result-container" class="mt-8 hidden">
+            <div class="border-t border-gray-200 pt-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Your Age</h2>
+                
+                <div id="exact-age" class="flex justify-between items-center mb-4">
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span class="font-medium">Exact Age:</span>
+                    </div>
+                    <span id="age-result" class="text-gray-700"></span>
+                </div>
+
+                <div id="birthday-countdown" class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        <span class="font-medium">Next Birthday:</span>
+                    </div>
+                    <span id="countdown-result" class="text-gray-700"></span>
+                </div>
+
+                <div id="birthday-graphic" class="mt-6 flex justify-center">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/bc4a6184-cb11-4d41-a44d-c9051318c196.png" alt="Colorful birthday cake with candles illustration on a festive background" class="rounded-lg birthday-animation">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('calculate-btn').addEventListener('click', calculateAge);
+        
+        function calculateAge() {
+            const birthdateInput = document.getElementById('birthdate');
+            const dateError = document.getElementById('date-error');
+            const resultContainer = document.getElementById('result-container');
+            
+            // Clear previous errors
+            dateError.classList.add('hidden');
+            
+            const birthdate = new Date(birthdateInput.value);
+            const today = new Date();
+            
+            // Validate input
+            if (!birthdateInput.value) {
+                alert('Please enter your birthdate');
+                return;
+            }
+            
+            if (birthdate > today) {
+                dateError.classList.remove('hidden');
+                resultContainer.classList.add('hidden');
+                return;
+            }
+            
+            // Calculate exact age
+            let years = today.getFullYear() - birthdate.getFullYear();
+            let months = today.getMonth() - birthdate.getMonth();
+            let days = today.getDate() - birthdate.getDate();
+            
+            if (days < 0) {
+                months--;
+                days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+            }
+            
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+            
+            // Display exact age
+            document.getElementById('age-result').textContent = `${years} years, ${months} months, ${days} days`;
+            
+            // Calculate next birthday
+            const nextBirthday = new Date(today.getFullYear(), birthdate.getMonth(), birthdate.getDate());
+            if (nextBirthday < today) {
+                nextBirthday.setFullYear(today.getFullYear() + 1);
+            }
+            
+            const timeUntilBirthday = nextBirthday - today;
+            const daysUntil = Math.ceil(timeUntilBirthday / (1000 * 60 * 60 * 24));
+            
+            // Display countdown
+            document.getElementById('countdown-result').textContent = `${daysUntil} days remaining`;
+            
+            // Show results
+            resultContainer.classList.remove('hidden');
+            
+            // Scroll to results
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
+
