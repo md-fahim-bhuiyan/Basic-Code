@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alarm Clock</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 800px;
+            width: 90%;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .clock {
+            font-size: 5rem;
+            font-weight: 300;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+        }
+
+        .date {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+
+        .alarm-container {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .alarm-form {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .time-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        select {
+            padding: 10px 15px;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background: #333;
+            color: #fff;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .set-btn {
+            background: linear-gradient(45deg, #4e54c8, #8f94fb);
+            color: white;
+        }
+
+        .stop-btn {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            color: white;
+            display: none;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .alarm-list {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .alarm-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .alarm-item button {
+            background: rgba(255, 0, 0, 0.2);
+            padding: 5px 10px;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: ripple 1s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .alarm-active {
+            animation: alarm-glow 1s infinite alternate;
+        }
+
+        @keyframes alarm-glow {
+            from {
+                box-shadow: 0 0 10px rgba(255, 100, 100, 0.5);
+            }
+            to {
+                box-shadow: 0 0 30px rgba(255, 50, 50, 0.8);
+            }
+        }
+
+        .empty-state {
+            opacity: 0.6;
+            padding: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .clock {
+                font-size: 3.5rem;
+            }
+            
+            .date {
+                font-size: 1.2rem;
+            }
+            
+            .alarm-form {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Smart Alarm Clock</h1>
+        
+        <div class="clock" id="clock">--:--:--</div>
+        <div class="date" id="date">Day, Month DD, YYYY</div>
+        
+        <div class="alarm-container">
+            <h2>Set Alarm</h2>
+            <div class="alarm-form">
+                <div class="time-input">
+                    <select id="hour-select">
+                        <option value="" disabled selected>Hour</option>
+                    </select>
+                    <span>:</span>
+                    <select id="minute-select">
+                        <option value="" disabled selected>Minute</option>
+                    </select>
+                </div>
+                <button class="set-btn" id="set-alarm-btn">Set Alarm</button>
+                <button class="stop-btn" id="stop-alarm-btn">Stop Alarm</button>
+            </div>
+            
+            <div class="alarm-list" id="alarm-list">
+                <div class="empty-state">No alarms set</div>
+            </div>
+        </div>
+    </div>
+    
+    <footer style="margin-top: 20px; opacity: 0.7; font-size: 0.9rem;">
+        Fahim Bhuiyan © 2025
+    </footer>
+    
+    <audio id="alarm-sound" loop>
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg">
+    </audio>
+    
+    <script>
+        // DOM Elements
+        const clockElement = document.getElementById('clock');
+        const dateElement = document.getElementById('date');
+        const hourSelect = document.getElementById('hour-select');
+        const minuteSelect = document.getElementById('minute-select');
+        const setAlarmBtn = document.getElementById('set-alarm-btn');
+        const stopAlarmBtn = document.getElementById('stop-alarm-btn');
+        const alarmList = document.getElementById('alarm-list');
+        const alarmSound = document.getElementById('alarm-sound');
+        
+        // Alarm state
+        let alarms = [];
+        let isAlarmRinging = false;
+        
+        // Populate hour and minute selects
+        function populateOptions() {
+            // Hours
+            for (let i = 0; i < 24; i++) {
+                const option = document.createElement('option');
+                option.value = i < 10 ? `0${i}` : i;
+                option.text = i < 10 ? `0${i}` : i;
+                hourSelect.appendChild(option);
+            }
+            
+            // Minutes
+            for (let i = 0; i < 60; i++) {
+                const option = document.createElement('option');
+                option.value = i < 10 ? `0${i}` : i;
+                option.text = i < 10 ? `0${i}` : i;
+                minuteSelect.appendChild(option);
+            }
+        }
+        
+        // Update clock and date
+        function updateClock() {
+            const now = new Date();
+            
+            // Update clock display
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            clockElement.textContent = `${hours}:${minutes}:${seconds}`;
+            
+            // Update date display
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dateElement.textContent = now.toLocaleDateString(undefined, options);
+            
+            // Check alarms
+            checkAlarms(hours, minutes);
+            
+            // Ripple effect on seconds change
+            if (seconds === '00') {
+                createRipple(clockElement);
+            }
+        }
+        
+        // Create ripple effect
+        function createRipple(element) {
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            
+            const rect = element.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = rect.width / 2 - size / 2;
+            const y = rect.height / 2 - size / 2;
+            
+            ripple.style.width = ripple.style.height = `${size}px`;
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+            
+            element.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 1000);
+        }
+        
+        // Check alarms
+        function checkAlarms(currentHours, currentMinutes) {
+            if (alarms.length === 0) return;
+            
+            const now = `${currentHours}:${currentMinutes}`;
+            
+            alarms.forEach(alarm => {
+                if (alarm.time === now && !isAlarmRinging) {
+                    triggerAlarm(alarm);
+                }
+            });
+        }
+        
+        // Trigger alarm
+        function triggerAlarm(alarm) {
+            isAlarmRinging = true;
+            document.body.classList.add('alarm-active');
+            alarmSound.play();
+            stopAlarmBtn.style.display = 'block';
+            setAlarmBtn.style.display = 'none';
+            
+            // Notify user
+            alert(`⏰ Alarm: ${alarm.time}`);
+        }
+        
+        // Stop alarm
+        function stopAlarm() {
+            isAlarmRinging = false;
+            document.body.classList.remove('alarm-active');
+            alarmSound.pause();
+            alarmSound.currentTime = 0;
+            stopAlarmBtn.style.display = 'none';
+            setAlarmBtn.style.display = 'block';
+        }
+        
+        // Add new alarm
+        function addAlarm(hours, minutes) {
+            const alarmTime = `${hours}:${minutes}`;
+            
+            // Check if alarm already exists
+            if (alarms.some(alarm => alarm.time === alarmTime)) {
+                alert('This alarm is already set!');
+                return;
+            }
+            
+            const alarm = {
+                time: alarmTime,
+                id: Date.now()
+            };
+            
+            alarms.push(alarm);
+            renderAlarms();
+        }
+        
+        // Remove alarm
+        function removeAlarm(id) {
+            alarms = alarms.filter(alarm => alarm.id !== id);
+            renderAlarms();
+        }
+        
+        // Render alarms list
+        function renderAlarms() {
+            if (alarms.length === 0) {
+                alarmList.innerHTML = '<div class="empty-state">No alarms set</div>';
+                return;
+            }
+            
+            alarmList.innerHTML = '';
+            
+            alarms.forEach(alarm => {
+                const alarmItem = document.createElement('div');
+                alarmItem.classList.add('alarm-item');
+                
+                alarmItem.innerHTML = `
+                    <span>${alarm.time}</span>
+                    <button class="remove-btn" data-id="${alarm.id}">Remove</button>
+                `;
+                
+                alarmList.appendChild(alarmItem);
+            });
+            
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = parseInt(e.target.getAttribute('data-id'));
+                    removeAlarm(id);
+                });
+            });
+        }
+        
+        // Event Listeners
+        setAlarmBtn.addEventListener('click', () => {
+            const hours = hourSelect.value;
+            const minutes = minuteSelect.value;
+            
+            if (!hours || !minutes) {
+                alert('Please select both hour and minute');
+                return;
+            }
+            
+            addAlarm(hours, minutes);
+            
+            // Reset selects
+            hourSelect.selectedIndex = 0;
+            minuteSelect.selectedIndex = 0;
+        });
+        
+        stopAlarmBtn.addEventListener('click', stopAlarm);
+        
+        // Initialize
+        populateOptions();
+        updateClock();
+        setInterval(updateClock, 1000);
+        
+        // Button ripple effect
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = `${size}px`;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 1000);
+            });
+        });
+    </script>
+</body>
+</html>
