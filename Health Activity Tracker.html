@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Health & Activity Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --light: #f8fafc;
+            --dark: #1e293b;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        
+        .nutrition-card {
+            background: linear-gradient(145deg, #ffffff, #f1f5f9);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .nutrition-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.5s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        .meal-badge {
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+        
+        .breakfast-badge { background-color: #dbeafe; color: #1d4ed8; }
+        .lunch-badge { background-color: #dcfce7; color: #166534; }
+        .dinner-badge { background-color: #fee2e2; color: #991b1b; }
+        .snack-badge { background-color: #fef3c7; color: #92400e; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Health Activity Tracker</h1>
+                <p class="text-gray-600">Track your daily nutrition and fitness activities</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <input type="date" id="current-date" class="bg-white rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button id="new-entry-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+                    <i class="fas fa-plus"></i>
+                    <span>New Entry</span>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column - Nutrition Summary -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Daily Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="nutrition-card p-4">
+                        <h3 class="text-gray-500 text-sm font-medium mb-1">Calories</h3>
+                        <div class="flex items-end justify-between">
+                            <p class="text-3xl font-bold text-blue-500" id="total-calories">0</p>
+                            <span class="text-gray-500">/ <span id="calorie-goal">2000</span> kcal</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div class="bg-blue-500 h-2 rounded-full" id="calories-progress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="nutrition-card p-4">
+                        <h3 class="text-gray-500 text-sm font-medium mb-1">Protein</h3>
+                        <div class="flex items-end justify-between">
+                            <p class="text-3xl font-bold text-green-500" id="total-protein">0</p>
+                            <span class="text-gray-500">/ <span id="protein-goal">150</span> g</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div class="bg-green-500 h-2 rounded-full" id="protein-progress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="nutrition-card p-4">
+                        <h3 class="text-gray-500 text-sm font-medium mb-1">Water</h3>
+                        <div class="flex items-end justify-between">
+                            <p class="text-3xl font-bold text-blue-400" id="water-intake">0</p>
+                            <span class="text-gray-500">/ 8 cups</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div class="bg-blue-400 h-2 rounded-full" id="water-progress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Today's Nutrition Log -->
+                <div class="nutrition-card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-800">Today's Meals</h2>
+                        <button id="add-meal-btn" class="text-blue-500 hover:text-blue-600 flex items-center gap-1">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Meal</span>
+                        </button>
+                    </div>
+                    
+                    <div id="meal-list" class="space-y-4">
+                        <!-- Empty state -->
+                        <div id="empty-meals" class="text-center py-8">
+                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/bee4febf-c0ae-47c8-a202-af4769eac7a6.png" alt="Illustration of a plate with various healthy foods arranged artistically" class="mx-auto mb-4 rounded-lg">
+                            <h3 class="text-lg font-medium text-gray-700">No meals added today</h3>
+                            <p class="text-gray-500">Click 'Add Meal' to log your food intake</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column - Stats & Activity -->
+            <div class="space-y-6">
+                <!-- Weight Tracker -->
+                <div class="nutrition-card p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Weight Tracker</h2>
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Current Weight</p>
+                            <p class="text-3xl font-bold"><span id="weight-value">--</span> <span class="text-xl text-gray-500">kg</span></p>
+                        </div>
+                        <button id="add-weight-btn" class="text-blue-500 hover:text-blue-600 flex items-center gap-1">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Weight</span>
+                        </button>
+                    </div>
+                    <div id="weight-chart-container" class="h-40">
+                        <canvas id="weight-chart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Activity Tracker -->
+                <div class="nutrition-card p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-gray-800">Activity Log</h2>
+                        <button id="add-activity-btn" class="text-blue-500 hover:text-blue-600 flex items-center gap-1">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Activity</span>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-blue-50 rounded-lg p-3 text-center">
+                            <p class="text-blue-500 text-2xl font-bold"><span id="steps-value">0</span></p>
+                            <p class="text-gray-600 text-xs">Steps</p>
+                        </div>
+                        <div class="bg-green-50 rounded-lg p-3 text-center">
+                            <p class="text-green-500 text-2xl font-bold"><span id="distance-value">0.0</span> <span class="text-xs">km</span></p>
+                            <p class="text-gray-600 text-xs">Distance</p>
+                        </div>
+                    </div>
+                    
+                    <div id="activity-list" class="space-y-3">
+                        <!-- Empty state -->
+                        <div id="empty-activities" class="text-center py-8">
+                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/2534d36e-052c-4eda-a1d0-a37f4836ac71.png" alt="Illustration of a person jogging on a path with fitness trackers" class="mx-auto mb-4 rounded-lg">
+                            <h3 class="text-lg font-medium text-gray-700">No activities logged yet</h3>
+                            <p class="text-gray-500">Record your walks, runs or workouts</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="text-center text-gray-500 text-sm mt-8 pb-4">
+        Developed by Fahim Bhuiyan © 2025
+    </footer>
+
+    <!-- Add Meal Modal -->
+    <div id="meal-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center border-b p-4">
+                <h3 class="text-lg font-semibold">Add Meal Entry</h3>
+                <button id="close-meal-modal" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <form id="meal-form">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="meal-type">Meal Type</label>
+                        <select id="meal-type" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="breakfast">Breakfast</option>
+                            <option value="lunch">Lunch</option>
+                            <option value="dinner">Dinner</option>
+                            <option value="snack">Snack</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="meal-name">Food Item</label>
+                        <input type="text" id="meal-name" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., Chicken Salad">
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2" for="calories">Calories</label>
+                            <input type="number" id="calories" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="kcal">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2" for="protein">Protein</label>
+                            <input type="number" id="protein" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="g">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2" for="carbs">Carbs</label>
+                            <input type="number" id="carbs" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="g">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="meal-notes">Notes</label>
+                        <textarea id="meal-notes" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="2" placeholder="Any additional notes"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 border-t p-4">
+                <button id="cancel-meal" class="px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100">Cancel</button>
+                <button id="save-meal" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Weight Modal -->
+    <div id="weight-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center border-b p-4">
+                <h3 class="text-lg font-semibold">Log Weight</h3>
+                <button id="close-weight-modal" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <form id="weight-form">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="weight-input">Weight (kg)</label>
+                        <input type="number" step="0.1" id="weight-input" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 72.5">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="weight-date">Date</label>
+                        <input type="date" id="weight-date" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="weight-notes">Notes</label>
+                        <textarea id="weight-notes" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="2" placeholder="Any additional notes"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 border-t p-4">
+                <button id="cancel-weight" class="px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100">Cancel</button>
+                <button id="save-weight" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Activity Modal -->
+    <div id="activity-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center border-b p-4">
+                <h3 class="text-lg font-semibold">Log Activity</h3>
+                <button id="close-activity-modal" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <form id="activity-form">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="activity-type">Activity Type</label>
+                        <select id="activity-type" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="walking">Walking</option>
+                            <option value="running">Running</option>
+                            <option value="cycling">Cycling</option>
+                            <option value="swimming">Swimming</option>
+                            <option value="workout">Workout</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2" for="duration">Duration (min)</label>
+                            <input type="number" id="duration" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 30">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2" for="distance">Distance (km)</label>
+                            <input type="number" step="0.1" id="distance" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 5.2">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="steps">Steps</label>
+                        <input type="number" id="steps" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 7500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="calories-burned">Calories Burned</label>
+                        <input type="number" id="calories-burned" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 300">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="activity-notes">Notes</label>
+                        <textarea id="activity-notes" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="2" placeholder="Any additional notes"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 border-t p-4">
+                <button id="cancel-activity" class="px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100">Cancel</button>
+                <button id="save-activity" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center border-b p-4">
+                <h3 class="text-lg font-semibold">User Settings</h3>
+                <button id="close-settings-modal" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <form id="settings-form">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="user-name">Name</label>
+                        <input type="text" id="user-name" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Your name">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="daily-calories">Daily Calories Goal</label>
+                        <input type="number" id="daily-calories" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 2000">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="daily-protein">Daily Protein Goal (g)</label>
+                        <input type="number" id="daily-protein" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 150">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="water-goal">Daily Water Goal (cups)</label>
+                        <input type="number" id="water-goal" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 8">
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 border-t p-4">
+                <button id="cancel-settings" class="px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100">Cancel</button>
+                <button id="save-settings" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Water Intake Modal -->
+    <div id="water-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center border-b p-4">
+                <h3 class="text-lg font-semibold">Add Water Intake</h3>
+                <button id="close-water-modal" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <form id="water-form">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="water-amount">Amount (cups)</label>
+                        <input type="number" step="0.5" id="water-amount" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 2.5">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="water-time">Time</label>
+                        <input type="time" id="water-time" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-medium mb-2" for="water-notes">Notes</label>
+                        <textarea id="water-notes" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="2" placeholder="Any additional notes"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 border-t p-4">
+                <button id="cancel-water" class="px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100">Cancel</button>
+                <button id="save-water" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // App state
+        const state = {
+            meals: [],
+            activities: [],
+            weightLogs: [],
+            waterLogs: [],
+            settings: {
+                name: 'My Name',
+                dailyCalories: 2000,
+                dailyProtein: 150,
+                waterGoal: 8
+            },
+            currentDate: new Date().toISOString().split('T')[0]
+        };
+        
+        // DOM elements
+        const elements = {
+            currentDate: document.getElementById('current-date'),
+            mealList: document.getElementById('meal-list'),
+            emptyMeals: document.getElementById('empty-meals'),
+            activityList: document.getElementById('activity-list'),
+            emptyActivities: document.getElementById('empty-activities'),
+            totalCalories: document.getElementById('total-calories'),
+            totalProtein: document.getElementById('total-protein'),
+            waterIntake: document.getElementById('water-intake'),
+            calorieGoal: document.getElementById('calorie-goal'),
+            proteinGoal: document.getElementById('protein-goal'),
+            weightValue: document.getElementById('weight-value'),
+            stepsValue: document.getElementById('steps-value'),
+            distanceValue: document.getElementById('distance-value'),
+            caloriesProgress: document.getElementById('calories-progress'),
+            proteinProgress: document.getElementById('protein-progress'),
+            waterProgress: document.getElementById('water-progress')
+        };
+        
+        // Chart instance
+        let weightChart = null;
+        
+        // Initialize the app
+        function init() {
+            // Load data from localStorage
+            loadData();
+            
+            // Set current date
+            elements.currentDate.value = state.currentDate;
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Render initial views
+            renderMeals();
+            renderActivities();
+            renderSummary();
+            renderWeightLog();
+            renderWeightChart();
+        }
+        
+        // Load data from localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('healthTrackerData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                state.meals = data.meals || [];
+                state.activities = data.activities || [];
+                state.weightLogs = data.weightLogs || [];
+                state.waterLogs = data.waterLogs || [];
+                state.settings = data.settings || state.settings;
+                
+                // Update UI elements with settings
+                elements.calorieGoal.textContent = state.settings.dailyCalories;
+                elements.proteinGoal.textContent = state.settings.dailyProtein;
+            }
+        }
+        
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('healthTrackerData', JSON.stringify({
+                meals: state.meals,
+                activities: state.activities,
+                weightLogs: state.weightLogs,
+                waterLogs: state.waterLogs,
+                settings: state.settings
+            }));
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Date change
+            elements.currentDate.addEventListener('change', (e) => {
+                state.currentDate = e.target.value;
+                renderMeals();
+                renderActivities();
+                renderSummary();
+                renderWeightLog();
+                renderWeightChart();
+            });
+            
+            // Meal modal
+            document.getElementById('add-meal-btn').addEventListener('click', () => {
+                document.getElementById('meal-modal').classList.remove('hidden');
+            });
+            
+            document.getElementById('close-meal-modal').addEventListener('click', () => {
+                document.getElementById('meal-modal').classList.add('hidden');
+            });
+            
+            document.getElementById('cancel-meal').addEventListener('click', () => {
+                document.getElementById('meal-modal').classList.add('hidden');
+            });
+            
+            document.getElementById('save-meal').addEventListener('click', saveMeal);
+            
+            // Weight modal
+            document.getElementById('add-weight-btn').addEventListener('click', () => {
+                document.getElementById('weight-date').value = state.currentDate;
+                document.getElementById('weight-modal').classList.remove('hidden');
+            });
+            
+            document.getElementById('close-weight-modal').addEventListener('click', () => {
+                document.getElementById('weight-modal').classList.add('hidden');
+            });
+            
+            document.getElementById('cancel-weight').addEventListener('click', () => {
+                document.getElementById('weight-modal').classList.add('hidden');
+            });
+            
+            document.getElementById('save-weight').addEventListener('click', saveWeight);
+            
+            // Activity modal
+            document.getElementById('add-activity-btn').addEventListener('click', () => {
+                document.getElementById('activity-modal').classList.remove('hidden');
+            });
+            
+            document.getElementById('close-activity-modal').addEventListener('click', () => {
+                document.getElementById('activity-modal').classList.add('hidden');
+            });
+            
+            document.getElementById('cancel-activity').addEventListener('click', () => {
+                document.getElementById('activity-modal').classList.add('hidden');
+            });
+            
+            document.getElementById('save-activity').addEventListener('click', saveActivity);
+            
+            // New entry button (toggle for menu)
+            document.getElementById('new-entry-btn').addEventListener('click', (e) => {
+                // Create a simple dropdown menu
+                const menu = document.createElement('div');
+                menu.className = 'absolute mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10';
+                menu.style.top = '100%';
+                menu.style.right = '0';
+                
+                menu.innerHTML = `
+                    <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-blue-50 flex items-center gap-2 meal-option">
+                        <i class="fas fa-utensils"></i>
+                        <span>Add Meal</span>
+                    </a>
+                    <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-blue-50 flex items-center gap-2 water-option">
+                        <i class="fas fa-tint"></i>
+                        <span>Add Water</span>
+                    </a>
+                    <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-blue-50 flex items-center gap-2 activity-option">
+                        <i class="fas fa-running"></i>
+                        <span>Add Activity</span>
+                    </a>
+                    <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-blue-50 flex items-center gap-2 weight-option">
+                        <i class="fas fa-weight"></i>
+                        <span>Add Weight</span>
+                    </a>
+                    <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-blue-50 flex items-center gap-2 settings-option border-t border-gray-100">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                `;
+                
+                // Position the menu
+                const buttonRect = e.target.getBoundingClientRect();
+                menu.style.position = 'fixed';
+                menu.style.top = `${buttonRect.bottom}px`;
+                menu.style.right = `${window.innerWidth - buttonRect.right}px`;
+                
+                // Add click handlers
+                menu.querySelector('.meal-option').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('meal-modal').classList.remove('hidden');
+                    menu.remove();
+                });
+                
+                menu.querySelector('.water-option').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('water-modal').classList.remove('hidden');
+                    menu.remove();
+                });
+                
+                menu.querySelector('.activity-option').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('activity-modal').classList.remove('hidden');
+                    menu.remove();
+                });
+                
+                menu.querySelector('.weight-option').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('weight-date').value = state.currentDate;
+                    document.getElementById('weight-modal').classList.remove('hidden');
+                    menu.remove();
+                });
+                
+                menu.querySelector('.settings-option').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openSettings();
+                    menu.remove();
+                });
+                
+                // Add to DOM
+                document.body.appendChild(menu);
+                
+                // Close menu when clicking outside
+                const closeMenu = (e) => {
+                    if (!menu.contains(e.target) && e.target !== document.getElementById('new-entry-btn')) {
+                        menu.remove();
+                        document.removeEventListener('click', closeMenu);
+                    }
+                };
+                
+                document.addEventListener('click', closeMenu);
+            });
+            
+            // Water modal
+            document.getElementById('close-water-modal').addEventListener('click', () => {
+                document.getElementById('water-modal').classList.add('hidden');
+            });
+            
+            document.getElementById('cancel-water').addEventListener('click', () => {
+                document.getElementById('water-modal').classList.add('hidden');
+            });
+            
+            document.getElementById('save-water').addEventListener('click', saveWater);
+            
+            // Settings modal
+            document.getElementById('close-settings-modal').addEventListener('click', () => {
+                document.getElementById('settings-modal').classList.add('hidden');
+            });
+            
+            document.getElementById('cancel-settings').addEventListener('click', () => {
+                document.getElementById('settings-modal').classList.add('hidden');
+            });
+            
+            document.getElementById('save-settings').addEventListener('click', saveSettings);
+        }
+        
+        // Open settings modal with current values
+        function openSettings() {
+            document.getElementById('user-name').value = state.settings.name;
+            document.getElementById('daily-calories').value = state.settings.dailyCalories;
+            document.getElementById('daily-protein').value = state.settings.dailyProtein;
+            document.getElementById('water-goal').value = state.settings.waterGoal;
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+        
+        // Save settings
+        function saveSettings() {
+            state.settings = {
+                name: document.getElementById('user-name').value,
+                dailyCalories: parseInt(document.getElementById('daily-calories').value) || 2000,
+                dailyProtein: parseInt(document.getElementById('daily-protein').value) || 150,
+                waterGoal: parseInt(document.getElementById('water-goal').value) || 8
+            };
+            
+            elements.calorieGoal.textContent = state.settings.dailyCalories;
+            elements.proteinGoal.textContent = state.settings.dailyProtein;
+            
+            saveData();
+            document.getElementById('settings-modal').classList.add('hidden');
+            renderSummary();
+        }
+        
+        // Save meal
+        function saveMeal() {
+            const mealType = document.getElementById('meal-type').value;
+            const mealName = document.getElementById('meal-name').value;
+            const calories = parseInt(document.getElementById('calories').value) || 0;
+            const protein = parseInt(document.getElementById('protein').value) || 0;
+            const carbs = parseInt(document.getElementById('carbs').value) || 0;
+            const notes = document.getElementById('meal-notes').value;
+            
+            if (!mealName) {
+                alert('Please enter a food item name');
+                return;
+            }
+            
+            const newMeal = {
+                id: Date.now(),
+                date: state.currentDate,
+                type: mealType,
+                name: mealName,
+                calories: calories,
+                protein: protein,
+                carbs: carbs,
+                notes: notes,
+                createdAt: new Date().toISOString()
+            };
+            
+            state.meals.push(newMeal);
+            saveData();
+            
+            // Reset form
+            document.getElementById('meal-name').value = '';
+            document.getElementById('calories').value = '';
+            document.getElementById('protein').value = '';
+            document.getElementById('carbs').value = '';
+            document.getElementById('meal-notes').value = '';
+            
+            document.getElementById('meal-modal').classList.add('hidden');
+            
+            renderMeals();
+            renderSummary();
+        }
+        
+        // Save water intake
+        function saveWater() {
+            const amount = parseFloat(document.getElementById('water-amount').value) || 0;
+            const time = document.getElementById('water-time').value || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const notes = document.getElementById('water-notes').value;
+            
+            if (amount <= 0) {
+                alert('Please enter a valid water amount');
+                return;
+            }
+            
+            const newWaterLog = {
+                id: Date.now(),
+                date: state.currentDate,
+                amount: amount,
+                time: time,
+                notes: notes,
+                createdAt: new Date().toISOString()
+            };
+            
+            state.waterLogs.push(newWaterLog);
+            saveData();
+            
+            // Reset form
+            document.getElementById('water-amount').value = '';
+            document.getElementById('water-time').value = '';
+            document.getElementById('water-notes').value = '';
+            
+            document.getElementById('water-modal').classList.add('hidden');
+            
+            renderSummary();
+        }
+        
+        // Save weight
+        function saveWeight() {
+            const weight = parseFloat(document.getElementById('weight-input').value);
+            const date = document.getElementById('weight-date').value;
+            const notes = document.getElementById('weight-notes').value;
+            
+            if (!weight || weight <= 0) {
+                alert('Please enter a valid weight');
+                return;
+            }
+            
+            // Check if entry exists for this date
+            const existingIndex = state.weightLogs.findIndex(log => log.date === date);
+            
+            const weightLog = {
+                id: Date.now(),
+                date: date,
+                weight: weight,
+                notes: notes,
+                createdAt: new Date().toISOString()
+            };
+            
+            if (existingIndex !== -1) {
+                state.weightLogs[existingIndex] = weightLog;
+            } else {
+                state.weightLogs.push(weightLog);
+            }
+            
+            saveData();
+            
+            // Reset form
+            document.getElementById('weight-input').value = '';
+            document.getElementById('weight-notes').value = '';
+            
+            document.getElementById('weight-modal').classList.add('hidden');
+            
+            renderWeightLog();
+            renderWeightChart();
+        }
+        
+        // Save activity
+        function saveActivity() {
+            const activityType = document.getElementById('activity-type').value;
+            const duration = parseInt(document.getElementById('duration').value) || 0;
+            const distance = parseFloat(document.getElementById('distance').value) || 0;
+            const steps = parseInt(document.getElementById('steps').value) || 0;
+            const caloriesBurned = parseInt(document.getElementById('calories-burned').value) || 0;
+            const notes = document.getElementById('activity-notes').value;
+            
+            if (!duration && !distance && !steps) {
+                alert('Please enter at least one activity metric (duration, distance, or steps)');
+                return;
+            }
+            
+            const newActivity = {
+                id: Date.now(),
+                date: state.currentDate,
+                type: activityType,
+                duration: duration,
+                distance: distance,
+                steps: steps,
+                caloriesBurned: caloriesBurned,
+                notes: notes,
+                createdAt: new Date().toISOString()
+            };
+            
+            state.activities.push(newActivity);
+            saveData();
+            
+            // Reset form
+            document.getElementById('activity-type').value = 'walking';
+            document.getElementById('duration').value = '';
+            document.getElementById('distance').value = '';
+            document.getElementById('steps').value = '';
+            document.getElementById('calories-burned').value = '';
+            document.getElementById('activity-notes').value = '';
+            
+            document.getElementById('activity-modal').classList.add('hidden');
+            
+            renderActivities();
+            renderSummary();
+        }
+        
+        // Delete a meal
+        function deleteMeal(id) {
+            state.meals = state.meals.filter(meal => meal.id !== id);
+            saveData();
+            renderMeals();
+            renderSummary();
+        }
+        
+        // Delete an activity
+        function deleteActivity(id) {
+            state.activities = state.activities.filter(activity => activity.id !== id);
+            saveData();
+            renderActivities();
+            renderSummary();
+        }
+        
+        // Delete a weight log
+        function deleteWeightLog(date) {
+            state.weightLogs = state.weightLogs.filter(log => log.date !== date);
+            saveData();
+            renderWeightLog();
+            renderWeightChart();
+        }
+        
+        // Render meals
+        function renderMeals() {
+            const todayMeals = state.meals.filter(meal => meal.date === state.currentDate);
+            
+            if (todayMeals.length === 0) {
+                elements.mealList.innerHTML = elements.emptyMeals.outerHTML;
+                return;
+            }
+            
+            let html = '';
+            
+            todayMeals.forEach(meal => {
+                const mealBadgeClass = `${meal.type}-badge`;
+                
+                html += `
+                    <div class="nutrition-card p-4 fade-in">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <span class="meal-badge ${mealBadgeClass}">${meal.type}</span>
+                                <h3 class="text-lg font-semibold mt-1">${meal.name}</h3>
+                            </div>
+                            <button class="text-gray-400 hover:text-red-500 delete-meal" data-id="${meal.id}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-sm mb-2">
+                            <div>
+                                <p class="text-gray-500">Calories</p>
+                                <p class="font-medium">${meal.calories} <span class="text-xs text-gray-500">kcal</span></p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Protein</p>
+                                <p class="font-medium">${meal.protein} <span class="text-xs text-gray-500">g</span></p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Carbs</p>
+                                <p class="font-medium">${meal.carbs} <span class="text-xs text-gray-500">g</span></p>
+                            </div>
+                        </div>
+                        ${meal.notes ? `<p class="text-sm text-gray-600"><i>${meal.notes}</i></p>` : ''}
+                    </div>
+                `;
+            });
+            
+            elements.mealList.innerHTML = html;
+            
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-meal').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = parseInt(e.currentTarget.getAttribute('data-id'));
+                    if (confirm('Are you sure you want to delete this meal?')) {
+                        deleteMeal(id);
+                    }
+                });
+            });
+        }
+        
+        // Render activities
+        function renderActivities() {
+            const todayActivities = state.activities.filter(activity => activity.date === state.currentDate);
+            
+            if (todayActivities.length === 0) {
+                elements.activityList.innerHTML = elements.emptyActivities.outerHTML;
+                return;
+            }
+            
+            let html = '';
+            
+            todayActivities.forEach(activity => {
+                html += `
+                    <div class="nutrition-card p-4 fade-in">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="text-lg font-semibold capitalize">${activity.type}</h3>
+                            </div>
+                            <button class="text-gray-400 hover:text-red-500 delete-activity" data-id="${activity.id}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            ${activity.duration ? `
+                                <div>
+                                    <p class="text-gray-500">Duration</p>
+                                    <p class="font-medium">${activity.duration} <span class="text-xs text-gray-500">min</span></p>
+                                </div>
+                            ` : ''}
+                            ${activity.distance ? `
+                                <div>
+                                    <p class="text-gray-500">Distance</p>
+                                    <p class="font-medium">${activity.distance} <span class="text-xs text-gray-500">km</span></p>
+                                </div>
+                            ` : ''}
+                            ${activity.steps ? `
+                                <div>
+                                    <p class="text-gray-500">Steps</p>
+                                    <p class="font-medium">${activity.steps}</p>
+                                </div>
+                            ` : ''}
+                            ${activity.caloriesBurned ? `
+                                <div>
+                                    <p class="text-gray-500">Calories Burned</p>
+                                    <p class="font-medium">${activity.caloriesBurned} <span class="text-xs text-gray-500">kcal</span></p>
+                                </div>
+                            ` : ''}
+                        </div>
+                        ${activity.notes ? `<p class="text-sm text-gray-600 mt-2"><i>${activity.notes}</i></p>` : ''}
+                    </div>
+                `;
+            });
+            
+            elements.activityList.innerHTML = html;
+            
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-activity').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = parseInt(e.currentTarget.getAttribute('data-id'));
+                    if (confirm('Are you sure you want to delete this activity?')) {
+                        deleteActivity(id);
+                    }
+                });
+            });
+        }
+        
+        // Render summary
+        function renderSummary() {
+            const todayMeals = state.meals.filter(meal => meal.date === state.currentDate);
+            const todayActivities = state.activities.filter(activity => activity.date === state.currentDate);
+            const todayWater = state.waterLogs.filter(log => log.date === state.currentDate);
+            
+            // Calculate totals
+            const totalCalories = todayMeals.reduce((sum, meal) => sum + meal.calories, 0);
+            const totalProtein = todayMeals.reduce((sum, meal) => sum + meal.protein, 0);
+            const totalWater = todayWater.reduce((sum, log) => sum + log.amount, 0);
+            
+            // Total steps and distance from activities
+            const totalSteps = todayActivities.reduce((sum, activity) => sum + (activity.steps || 0), 0);
+            const totalDistance = todayActivities.reduce((sum, activity) => sum + (activity.distance || 0), 0);
+            
+            // Update UI
+            elements.totalCalories.textContent = totalCalories;
+            elements.totalProtein.textContent = totalProtein;
+            elements.waterIntake.textContent = totalWater;
+            elements.stepsValue.textContent = totalSteps;
+            elements.distanceValue.textContent = totalDistance.toFixed(1);
+            
+            // Update progress bars
+            const caloriePercentage = Math.min(Math.round((totalCalories / state.settings.dailyCalories) * 100), 100);
+            const proteinPercentage = Math.min(Math.round((totalProtein / state.settings.dailyProtein) * 100), 100);
+            const waterPercentage = Math.min(Math.round((totalWater / state.settings.waterGoal) * 100), 100);
+            
+            elements.caloriesProgress.style.width = `${caloriePercentage}%`;
+            elements.proteinProgress.style.width = `${proteinPercentage}%`;
+            elements.waterProgress.style.width = `${waterPercentage}%`;
+        }
+        
+        // Render weight log
+        function renderWeightLog() {
+            // Find the most recent weight log
+            const sortedWeights = [...state.weightLogs].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const latestWeight = sortedWeights.length > 0 ? sortedWeights[0] : null;
+            
+            if (latestWeight) {
+                elements.weightValue.textContent = latestWeight.weight;
+            } else {
+                elements.weightValue.textContent = '--';
+            }
+        }
+        
+        // Render weight chart
+        function renderWeightChart() {
+            const ctx = document.getElementById('weight-chart').getContext('2d');
+            
+            // Sort weight logs by date
+            const sortedWeights = [...state.weightLogs].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Prepare data
+            const labels = sortedWeights.map(log => {
+                const date = new Date(log.date);
+                return `${date.getDate()}/${date.getMonth() + 1}`;
+            });
+            
+            const data = sortedWeights.map(log => log.weight);
+            
+            // Destroy previous chart if exists
+            if (weightChart) {
+                weightChart.destroy();
+            }
+            
+            // Create new chart
+            weightChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Weight (kg)',
+                        data: data,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: sortedWeights.length > 1 ? 3 : 5,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Weight: ${context.parsed.y} kg`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
