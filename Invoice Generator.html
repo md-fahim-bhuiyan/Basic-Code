@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f7fa;
+        }
+        
+        .invoice-container {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        
+        .header-gradient {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        
+        .item-row:hover {
+            background-color: #f8fafc;
+        }
+        
+        .total-section {
+            background-color: #f8fafc;
+            border-left: 4px solid #4f46e5;
+        }
+        
+        .signature-placeholder {
+            border-bottom: 1px dashed #6b7280;
+            margin-bottom: 40px;
+        }
+        
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            body {
+                background-color: white;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4 lg:p-8">
+        <div class="no-print bg-white rounded-lg shadow-md p-6 mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">Invoice Generator</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Company Information -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-700 mb-3">Your Company Details</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Company Name</label>
+                            <input type="text" id="companyName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="URBAN UMMAH">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Address</label>
+                            <textarea id="companyAddress" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">Dhaka, Bangladesh</textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Phone</label>
+                                <input type="text" id="companyPhone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="+8801517328176">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Email</label>
+                                <input type="text" id="companyEmail" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="urban.ummah.bd@gmail.com">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Tax ID/VAT</label>
+                            <input type="text" id="companyTax" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="US123456789">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Client Information -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-700 mb-3">Client Details</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Client Name</label>
+                            <input type="text" id="clientName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Address</label>
+                            <textarea id="clientAddress" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Invoice Number</label>
+                            <input type="text" id="invoiceNumber" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="INV-2025-">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Date</label>
+                                <input type="date" id="invoiceDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Due Date</label>
+                                <input type="date" id="dueDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Items Table -->
+            <div class="mt-8">
+                <h2 class="text-lg font-semibold text-gray-700 mb-3">Invoice Items</h2>
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tax (%)</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoiceItems" class="bg-white divide-y divide-gray-200">
+                        <!-- Items will be added here -->
+                    </tbody>
+                </table>
+                <button id="addItemBtn" class="mt-2 inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Add Item
+                </button>
+            </div>
+            
+            <!-- Notes & Terms -->
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Notes</label>
+                    <textarea id="notes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">Thank you for your business!</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Terms & Conditions</label>
+                    <textarea id="terms" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">Payment is due within 30 days. Please make checks payable to URBAN UMMAH</textarea>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="mt-8 flex flex-wrap gap-3">
+                <button id="previewBtn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Preview Invoice
+                </button>
+                <button id="generatePdfBtn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Download PDF
+                </button>
+                <button id="printBtn" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Print Invoice
+                </button>
+                <button id="clearBtn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    Clear Form
+                </button>
+            </div>
+        </div>
+        
+        <!-- Invoice Preview -->
+        <div id="invoicePreview" class="invoice-container bg-white rounded-lg p-6 mx-auto" style="max-width: 800px; display: none;">
+            <div class="flex justify-between items-start mb-8">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-800" id="previewCompanyName">URBAN UMMAH</h2>
+                    <div class="mt-1 text-gray-600 text-sm" id="previewCompanyAddress">123 Business Street, Suite 456<br>New York, NY 10001</div>
+                    <div class="mt-2 text-gray-600 text-sm">
+                        Phone: <span id="previewCompanyPhone">+8801517328176</span><br>
+                        Email: <span id="previewCompanyEmail">urban.ummah.bd@gmail.com</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="text-right text-2xl font-bold text-indigo-600">INVOICE</div>
+                    <div class="mt-4 text-right">
+                        <div class="text-gray-800 font-medium">Invoice #: <span id="previewInvoiceNumber">INV-2025-</span></div>
+                        <div class="text-gray-600 text-sm">Date: <span id="previewInvoiceDate"></span></div>
+                        <div class="text-gray-600 text-sm">Due Date: <span id="previewDueDate"></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-3">From:</h3>
+                    <div id="previewCompanyDetailsFrom">Urban Ummah<br>Dhaka, BangladeshTax ID: US123456789</div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-3">To:</h3>
+                    <div id="previewClientDetails">Acme Corporation<br>789 Client Avenue<br>Boston, MA 02108</div>
+                </div>
+            </div>
+            
+            <table class="min-w-full divide-y divide-gray-200 mb-6">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tax</th>
+                        <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="previewInvoiceItems" class="bg-white divide-y divide-gray-200">
+                    <!-- Invoice items will be added here -->
+                </tbody>
+                <tfoot class="bg-white">
+                    <tr>
+                        <td colspan="4" class="px-4 py-3 text-right font-medium text-gray-500">Subtotal</td>
+                        <td id="previewSubtotal" class="px-4 py-3 text-right" ৳0.00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="px-4 py-3 text-right font-medium text-gray-500">Tax (0%)</td>
+                        <td id="previewTax" class="px-4 py-3 text-right">৳0.00</td>
+                    </tr>
+                    <tr class="font-bold">
+                        <td colspan="4" class="px-4 py-3 text-right text-gray-900">Total</td>
+                        <td id="previewTotal" class="px-4 py-3 text-right">৳0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Notes</h3>
+                    <div id="previewNotes" class="text-gray-600">Thank you for your business!</div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Terms & Conditions</h3>
+                    <div id="previewTerms" class="text-gray-600">Payment is due within 30 days. Please make checks payable to URBAN UMMAH</div>
+                </div>
+            </div>
+            
+            <div class="mt-12 flex justify-between">
+                <div class="text-center">
+                    <div class="signature-placeholder w-48 h-px inline-block"></div>
+                    <div class="text-sm text-gray-500 mt-2">Authorized Signature</div>
+                </div>
+                <div class="text-center">
+                    <div class="signature-placeholder w-48 h-px inline-block"></div>
+                    <div class="text-sm text-gray-500 mt-1">Client Signature</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize with current date
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const formattedToday = today.toISOString().split('T')[0];
+            document.getElementById('invoiceDate').value = formattedToday;
+            
+            // Set due date to 30 days from today
+            const dueDate = new Date();
+            dueDate.setDate(today.getDate() + 30);
+            const formattedDueDate = dueDate.toISOString().split('T')[0];
+            document.getElementById('dueDate').value = formattedDueDate;           
+            updatePreview();
+            
+            // Add event listeners for buttons
+            document.getElementById('previewBtn').addEventListener('click', showPreview);
+            document.getElementById('generatePdfBtn').addEventListener('click', generatePDF);
+            document.getElementById('printBtn').addEventListener('click', printInvoice);
+            document.getElementById('clearBtn').addEventListener('click', clearForm);
+        });
+        
+        // Add item to invoice
+        document.getElementById('addItemBtn').addEventListener('click', function() {
+            addItem('', 1, 0, 0);
+        });
+        
+        function addItem(description, quantity, price, tax) {
+            const row = document.createElement('tr');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <input type="text" class="item-description border-gray-300 rounded focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm w-full" value="${description}">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <input type="number" min="1" class="item-quantity border-gray-300 rounded focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm w-20" value="${quantity}">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <input type="number" min="0" step="0.01" class="item-price border-gray-300 rounded focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm w-24" value="${price.toFixed(2)}">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <input type="number" min="0" max="100" class="item-tax border-gray-300 rounded focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm w-20" value="${tax}">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="item-total text-gray-900">$৳{(quantity * price * (1 + tax/100)).toFixed(2)}</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button class="remove-item text-red-600 hover:text-red-900">Remove</button>
+                </td>
+            `;
+            
+            document.getElementById('invoiceItems').appendChild(row);
+            
+            // Add event listeners to recalculate when values change
+            const inputs = row.querySelectorAll('.item-quantity, .item-price, .item-tax');
+            inputs.forEach(input => {
+                input.addEventListener('input', recalculate);
+            });
+            
+            // Add event listener for remove button
+            row.querySelector('.remove-item').addEventListener('click', function() {
+                row.remove();
+                recalculate();
+            });
+            
+            recalculate();
+        }
+        
+        // Recalculate totals when values change
+        function recalculate() {
+            const rows = document.querySelectorAll('#invoiceItems tr');
+            let subtotal = 0;
+            let taxTotal = 0;
+            
+            rows.forEach(row => {
+                const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const taxRate = parseFloat(row.querySelector('.item-tax').value) || 0;
+                
+                const itemTotal = quantity * price * (1 + taxRate/100);
+                const itemTax = quantity * price * (taxRate/100);
+                
+                row.querySelector('.item-total').textContent = '৳' + itemTotal.toFixed(2);
+                
+                subtotal += quantity * price;
+                taxTotal += itemTax;
+            });
+            
+            const total = subtotal + taxTotal;
+            
+            // Update preview totals
+            document.getElementById('previewSubtotal').textContent = '৳' + subtotal.toFixed(2);
+            document.getElementById('previewTax').textContent = '৳' + taxTotal.toFixed(2);
+            document.getElementById('previewTotal').textContent = '৳' + total.toFixed(2);
+        }
+        
+        // Show preview
+        function showPreview() {
+            updatePreview();
+            document.getElementById('invoicePreview').style.display = 'block';
+            window.scrollTo(0, document.getElementById('invoicePreview').offsetTop);
+        }
+        
+        function updatePreview() {
+            // Update company info
+            document.getElementById('previewCompanyName').textContent = document.getElementById('companyName').value;
+            document.getElementById('previewCompanyAddress').innerHTML = document.getElementById('companyAddress').value.replace(/\n/g, '<br>');
+            document.getElementById('previewCompanyPhone').textContent = document.getElementById('companyPhone').value;
+            document.getElementById('previewCompanyEmail').textContent = document.getElementById('companyEmail').value;
+            document.getElementById('previewCompanyDetailsFrom').innerHTML = `
+                ${document.getElementById('companyName').value}<br>
+                ${document.getElementById('companyAddress').value.replace(/\n/g, '<br>')}<br>
+                Tax ID: ${document.getElementById('companyTax').value}
+            `;
+            
+            // Update client info
+            document.getElementById('previewClientDetails').innerHTML = `
+                ${document.getElementById('clientName').value}<br>
+                ${document.getElementById('clientAddress').value.replace(/\n/g, '<br>')}
+            `;
+            
+            // Update invoice details
+            document.getElementById('previewInvoiceNumber').textContent = document.getElementById('invoiceNumber').value;
+            document.getElementById('previewInvoiceDate').textContent = formatDate(document.getElementById('invoiceDate').value);
+            document.getElementById('previewDueDate').textContent = formatDate(document.getElementById('dueDate').value);
+            
+            // Update notes and terms
+            document.getElementById('previewNotes').innerHTML = document.getElementById('notes').value.replace(/\n/g, '<br>');
+            document.getElementById('previewTerms').innerHTML = document.getElementById('terms').value.replace(/\n/g, '<br>');
+            
+            // Update items
+            const previewTable = document.getElementById('previewInvoiceItems');
+            previewTable.innerHTML = '';
+            
+            const rows = document.querySelectorAll('#invoiceItems tr');
+            rows.forEach(row => {
+                const description = row.querySelector('.item-description').value;
+                const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const taxRate = parseFloat(row.querySelector('.item-tax').value) || 0;
+                
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50';
+                tr.innerHTML = `
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800">${description}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${quantity}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">$${price.toFixed(2)}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${taxRate}%</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-800">$${(quantity * price * (1 + taxRate/100)).toFixed(2)}</td>
+                `;
+                
+                previewTable.appendChild(tr);
+            });
+            
+            // Recalculate totals
+            recalculate();
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('en-US', options);
+        }
+        
+        // Generate PDF
+        function generatePDF() {
+            updatePreview();
+            
+            // Show loading state
+            const pdfButton = document.getElementById('generatePdfBtn');
+            const originalText = pdfButton.innerHTML;
+            pdfButton.innerHTML = '<span class="loader mr-2"></span>Generating PDF...';
+            pdfButton.disabled = true;
+            
+            // Convert to canvas
+            const element = document.getElementById('invoicePreview');
+            
+            html2canvas(element, {
+                scale: 2,
+                logging: false,
+                useCORS: true,
+                scrollY: -window.scrollY,
+                windowWidth: document.documentElement.offsetWidth,
+                windowHeight: document.documentElement.offsetHeight
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210; // A4 width in mm
+                const pageHeight = 297; // A4 height in mm
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+                
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                // Generate filename based on invoice number
+                const invoiceNumber = document.getElementById('invoiceNumber').value || 'invoice';
+                const filename = `invoice_${invoiceNumber}.pdf`;
+                
+                // Save the PDF
+                pdf.save(filename);
+                
+                // Restore button state
+                pdfButton.innerHTML = originalText;
+                pdfButton.disabled = false;
+            }).catch(error => {
+                console.error('Error generating PDF:', error);
+                alert('Error generating PDF. Please try again.');
+                
+                // Restore button state
+                pdfButton.innerHTML = originalText;
+                pdfButton.disabled = false;
+            });
+        }
+        
+        // Print invoice
+        function printInvoice() {
+            updatePreview();
+            
+            // Show the preview if it's hidden
+            document.getElementById('invoicePreview').style.display = 'block';
+            
+            // Temporarily hide the controls
+            const noPrintElements = document.querySelectorAll('.no-print');
+            noPrintElements.forEach(el => el.style.display = 'none');
+            
+            // Trigger print
+            window.print();
+            
+            // Restore display
+            setTimeout(() => {
+                noPrintElements.forEach(el => el.style.display = '');
+            }, 500);
+        }
+        
+        // Clear form
+        function clearForm() {
+            if (confirm('Are you sure you want to clear all form data?')) {
+                // Reset form fields
+                document.getElementById('companyName').value = '';
+                document.getElementById('companyAddress').value = '';
+                document.getElementById('companyPhone').value = '';
+                document.getElementById('companyEmail').value = '';
+                document.getElementById('companyTax').value = '';
+                
+                document.getElementById('clientName').value = '';
+                document.getElementById('clientAddress').value = '';
+                document.getElementById('invoiceNumber').value = 'INV-' + new Date().getFullYear() + '-001';
+                
+                const today = new Date();
+                const formattedToday = today.toISOString().split('T')[0];
+                document.getElementById('invoiceDate').value = formattedToday;
+                
+                const dueDate = new Date();
+                dueDate.setDate(today.getDate() + 30);
+                const formattedDueDate = dueDate.toISOString().split('T')[0];
+                document.getElementById('dueDate').value = formattedDueDate;
+                
+                document.getElementById('notes').value = '';
+                document.getElementById('terms').value = '';
+                
+                // Clear items
+                document.getElementById('invoiceItems').innerHTML = '';
+                
+                // Add one empty item
+                addItem('', 1, 0, 0);
+            }
+        }
+        
+        // Add CSS for loader
+        const style = document.createElement('style');
+        style.textContent = `
+            .loader {
+                border: 2px solid #f3f3f3;
+                border-top: 2px solid #8b5cf6;
+                border-radius: 50%;
+                width: 16px;
+                height: 16px;
+                animation: spin 1s linear infinite;
+            }
+            
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
