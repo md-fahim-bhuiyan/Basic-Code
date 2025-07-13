@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Calendar App</title>
+    <style>
+        :root {
+            --primary-color: #3182ce;
+            --highlight-color: #63b3ed;
+            --text-color: #2d3748;
+            --light-text: #f7fafc;
+            --border-color: #e2e8f0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .calendar-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .month-year-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--highlight-color);
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+        
+        .day-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            border-radius: 5px;
+        }
+        
+        .calendar-day {
+            min-height: 100px;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            position: relative;
+            transition: all 0.3s;
+        }
+        
+        .calendar-day:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .day-number {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .empty-day {
+            background-color: #edf2f7;
+            border: none;
+        }
+        
+        .notes {
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+        
+        .today {
+            background-color: var(--highlight-color);
+            color: var(--light-text);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin-bottom: 15px;
+            resize: vertical;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .calendar-day {
+                min-height: 70px;
+                padding: 5px;
+                font-size: 0.9rem;
+            }
+            
+            .day-header {
+                padding: 5px;
+                font-size: 0.8rem;
+            }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px 0;
+            color: var(--text-color);
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Simple Calendar App</h1>
+            <p>Plan your month and add daily notes</p>
+        </header>
+        
+        <div class="calendar-navigation">
+            <button id="prev-month">Previous</button>
+            <div class="month-year-display" id="month-year">Month Year</div>
+            <button id="next-month">Next</button>
+        </div>
+        
+        <div class="calendar-grid" id="calendar-header">
+            <div class="day-header">Sunday</div>
+            <div class="day-header">Monday</div>
+            <div class="day-header">Tuesday</div>
+            <div class="day-header">Wednesday</div>
+            <div class="day-header">Thursday</div>
+            <div class="day-header">Friday</div>
+            <div class="day-header">Saturday</div>
+        </div>
+        
+        <div class="calendar-grid" id="calendar-days"></div>
+    </div>
+
+    <footer class="footer">
+        Developed by Fahim Bhuiyan © 2025
+    </footer>
+    
+    <div class="modal" id="notes-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-date"></div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <textarea id="notes-text" placeholder="Add your notes or reminders here..."></textarea>
+            <div class="action-buttons">
+                <button id="cancel-notes">Cancel</button>
+                <button id="save-notes">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentDate = new Date();
+            let currentYear = currentDate.getFullYear();
+            let currentMonth = currentDate.getMonth();
+            let selectedDate = null;
+            let notesData = {};
+            
+            // Load saved notes from localStorage
+            function loadNotes() {
+                const savedNotes = localStorage.getItem('calendarNotes');
+                if (savedNotes) {
+                    notesData = JSON.parse(savedNotes);
+                }
+            }
+            
+            // Save notes to localStorage
+            function saveNotes() {
+                localStorage.setItem('calendarNotes', JSON.stringify(notesData));
+            }
+            
+            // Generate calendar for specific month and year
+            function generateCalendar(year, month) {
+                const calendarDays = document.getElementById('calendar-days');
+                calendarDays.innerHTML = '';
+                
+                const firstDayOfMonth = new Date(year, month, 1);
+                const lastDayOfMonth = new Date(year, month + 1, 0);
+                const daysInMonth = lastDayOfMonth.getDate();
+                
+                const startingDay = firstDayOfMonth.getDay();
+                
+                // Set month and year display
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                   'July', 'August', 'September', 'October', 'November', 'December'];
+                document.getElementById('month-year').textContent = `${monthNames[month]} ${year}`;
+                
+                // Add empty cells for days before the first day of the month
+                for (let i = 0; i < startingDay; i++) {
+                    const emptyDay = document.createElement('div');
+                    emptyDay.className = 'calendar-day empty-day';
+                    calendarDays.appendChild(emptyDay);
+                }
+                
+                // Create day cells for the month
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'calendar-day';
+                    
+                    const dateKey = `${year}-${month + 1}-${day}`;
+                    
+                    // Check if today
+                    const today = new Date();
+                    if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+                        dayElement.classList.add('today');
+                    }
+                    
+                    dayElement.innerHTML = `
+                        <div class="day-number">${day}</div>
+                        <div class="notes" id="notes-${dateKey}">
+                            ${notesData[dateKey] ? notesData[dateKey].substring(0, 30) + (notesData[dateKey].length > 30 ? '...' : '') : ''}
+                        </div>
+                    `;
+                    
+                    dayElement.addEventListener('click', () => {
+                        openNotesModal(year, month, day);
+                    });
+                    
+                    calendarDays.appendChild(dayElement);
+                }
+            }
+            
+            // Open notes modal
+            function openNotesModal(year, month, day) {
+                const modal = document.getElementById('notes-modal');
+                const modalDate = document.getElementById('modal-date');
+                const notesText = document.getElementById('notes-text');
+                
+                selectedDate = `${year}-${month + 1}-${day}`;
+                
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                   'July', 'August', 'September', 'October', 'November', 'December'];
+                modalDate.textContent = `${monthNames[month]} ${day}, ${year}`;
+                
+                notesText.value = notesData[selectedDate] || '';
+                
+                modal.style.display = 'flex';
+            }
+            
+            // Close notes modal
+            function closeNotesModal() {
+                document.getElementById('notes-modal').style.display = 'none';
+            }
+            
+            // Initialize the app
+            function init() {
+                loadNotes();
+                generateCalendar(currentYear, currentMonth);
+                
+                // Event listeners for navigation
+                document.getElementById('prev-month').addEventListener('click', () => {
+                    currentMonth--;
+                    if (currentMonth < 0) {
+                        currentMonth = 11;
+                        currentYear--;
+                    }
+                    generateCalendar(currentYear, currentMonth);
+                });
+                
+                document.getElementById('next-month').addEventListener('click', () => {
+                    currentMonth++;
+                    if (currentMonth > 11) {
+                        currentMonth = 0;
+                        currentYear++;
+                    }
+                    generateCalendar(currentYear, currentMonth);
+                });
+                
+                // Event listeners for modal
+                document.querySelector('.close-modal').addEventListener('click', closeNotesModal);
+                document.getElementById('cancel-notes').addEventListener('click', closeNotesModal);
+                document.getElementById('save-notes').addEventListener('click', () => {
+                    const notesText = document.getElementById('notes-text').value.trim();
+                    
+                    if (selectedDate) {
+                        if (notesText) {
+                            notesData[selectedDate] = notesText;
+                        } else {
+                            delete notesData[selectedDate];
+                        }
+                        
+                        saveNotes();
+                        generateCalendar(currentYear, currentMonth);
+                        closeNotesModal();
+                    }
+                });
+            }
+            
+            // Start the app
+            init();
+        });
+    </script>
+</body>
+</html>
