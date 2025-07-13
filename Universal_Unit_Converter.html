@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Unit Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .converter-box {
+            transition: all 0.3s ease;
+        }
+        .converter-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+        }
+        input::-webkit-inner-spin-button,
+        input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-100">
+    <div class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-12">
+            <div class="text-center">
+                    <h1 class="text-3xl sm:text-4xl font-bold">Universal Unit Converter</h1>
+                    <p class="text-lg sm:text-xl mt-2 opacity-90">Convert between different measurement systems effortlessly</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-2 sm:px-4">
+            <!-- Length Converter -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden converter-box">
+                <div class="bg-blue-500 text-white px-4 sm:px-6 py-4">
+                    <h2 class="text-xl font-semibold">Length Converter</h2>
+                    <div class="w-12 h-1 bg-blue-300 mt-2 rounded-full"></div>
+                </div>
+                <div class="p-6">
+                    <div class="relative">
+                        <input type="number" id="length-value" class="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter value" autocomplete="off">
+                        <select id="length-from" class="mt-4 w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="mm">Millimeter (mm)</option>
+                            <option value="cm">Centimeter (cm)</option>
+                            <option value="m">Meter (m)</option>
+                            <option value="km">Kilometer (km)</option>
+                            <option value="in" selected>Inch (in)</option>
+                            <option value="ft">Foot (ft)</option>
+                            <option value="yd">Yard (yd)</option>
+                            <option value="mi">Mile (mi)</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-center my-4">
+                        <button onclick="convertLength()" class="px-8 py-3 text-lg bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <input type="number" id="length-result" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-100" readonly>
+                        <select id="length-to" class="mt-4 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="mm">Millimeter (mm)</option>
+                            <option value="cm" selected>Centimeter (cm)</option>
+                            <option value="m">Meter (m)</option>
+                            <option value="km">Kilometer (km)</option>
+                            <option value="in">Inch (in)</option>
+                            <option value="ft">Foot (ft)</option>
+                            <option value="yd">Yard (yd)</option>
+                            <option value="mi">Mile (mi)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Temperature Converter -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden converter-box">
+                <div class="bg-red-500 text-white px-6 py-4">
+                    <h2 class="text-xl font-semibold">Temperature Converter</h2>
+                    <div class="w-12 h-1 bg-red-300 mt-2 rounded-full"></div>
+                </div>
+                <div class="p-6">
+                    <div class="relative">
+                        <input type="number" id="temp-value" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Enter value" autocomplete="off">
+                        <select id="temp-from" class="mt-4 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            <option value="c" selected>Celsius (°C)</option>
+                            <option value="f">Fahrenheit (°F)</option>
+                            <option value="k">Kelvin (K)</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-center my-4">
+                        <button onclick="convertTemperature()" class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <input type="number" id="temp-result" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-gray-100" readonly>
+                        <select id="temp-to" class="mt-4 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            <option value="c">Celsius (°C)</option>
+                            <option value="f" selected>Fahrenheit (°F)</option>
+                            <option value="k">Kelvin (K)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weight Converter -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden converter-box">
+                <div class="bg-green-500 text-white px-6 py-4">
+                    <h2 class="text-xl font-semibold">Weight Converter</h2>
+                    <div class="w-12 h-1 bg-green-300 mt-2 rounded-full"></div>
+                </div>
+                <div class="p-6">
+                    <div class="relative">
+                        <input type="number" id="weight-value" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="Enter value" autocomplete="off">
+                        <select id="weight-from" class="mt-4 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="mg">Milligram (mg)</option>
+                            <option value="g">Gram (g)</option>
+                            <option value="kg" selected>Kilogram (kg)</option>
+                            <option value="t">Metric Ton (t)</option>
+                            <option value="oz">Ounce (oz)</option>
+                            <option value="lb">Pound (lb)</option>
+                            <option value="st">Stone (st)</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-center my-4">
+                        <button onclick="convertWeight()" class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <input type="number" id="weight-result" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-100" readonly>
+                        <select id="weight-to" class="mt-4 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="mg">Milligram (mg)</option>
+                            <option value="g" selected>Gram (g)</option>
+                            <option value="kg">Kilogram (kg)</option>
+                            <option value="t">Metric Ton (t)</option>
+                            <option value="oz">Ounce (oz)</option>
+                            <option value="lb">Pound (lb)</option>
+                            <option value="st">Stone (st)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Area Converter -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden converter-box">
+                <div class="bg-purple-500 text-white px-6 py-4">
+                    <h2 class="text-xl font-semibold">Area Converter</h2>
+                    <div class="w-12 h-1 bg-purple-300 mt-2 rounded-full"></div>
+                </div>
+                <div class="p-6">
+                    <div class="relative">
+                        <input type="number" id="area-value" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Enter value" autocomplete="off">
+                        <select id="area-from" class="mt-4 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="mm2">Square Millimeter (mm²)</option>
+                            <option value="cm2" selected>Square Centimeter (cm²)</option>
+                            <option value="m2">Square Meter (m²)</option>
+                            <option value="ha">Hectare (ha)</option>
+                            <option value="km2">Square Kilometer (km²)</option>
+                            <option value="in2">Square Inch (in²)</option>
+                            <option value="ft2">Square Foot (ft²)</option>
+                            <option value="yd2">Square Yard (yd²)</option>
+                            <option value="ac">Acre (ac)</option>
+                            <option value="mi2">Square Mile (mi²)</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-center my-4">
+                        <button onclick="convertArea()" class="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <input type="number" id="area-result" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-100" readonly>
+                        <select id="area-to" class="mt-4 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="mm2">Square Millimeter (mm²)</option>
+                            <option value="cm2">Square Centimeter (cm²)</option>
+                            <option value="m2" selected>Square Meter (m²)</option>
+                            <option value="ha">Hectare (ha)</option>
+                            <option value="km2">Square Kilometer (km²)</option>
+                            <option value="in2">Square Inch (in²)</option>
+                            <option value="ft2">Square Foot (ft²)</option>
+                            <option value="yd2">Square Yard (yd²)</option>
+                            <option value="ac">Acre (ac)</option>
+                            <option value="mi2">Square Mile (mi²)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Volume Converter -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden converter-box">
+                <div class="bg-yellow-500 text-white px-6 py-4">
+                    <h2 class="text-xl font-semibold">Volume Converter</h2>
+                    <div class="w-12 h-1 bg-yellow-300 mt-2 rounded-full"></div>
+                </div>
+                <div class="p-6">
+                    <div class="relative">
+                        <input type="number" id="volume-value" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent" placeholder="Enter value" autocomplete="off">
+                        <select id="volume-from" class="mt-4 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                            <option value="ml" selected>Milliliter (ml)</option>
+                            <option value="l">Liter (l)</option>
+                            <option value="m3">Cubic Meter (m³)</option>
+                            <option value="gal">Gallon (gal)</option>
+                            <option value="qt">Quart (qt)</option>
+                            <option value="pt">Pint (pt)</option>
+                            <option value="cup">Cup (cup)</option>
+                            <option value="fl-oz">Fluid Ounce (fl oz)</option>
+                            <option value="tbsp">Tablespoon (tbsp)</option>
+                            <option value="tsp">Teaspoon (tsp)</option>
+                            <option value="in3">Cubic Inch (in³)</option>
+                            <option value="ft3">Cubic Foot (ft³)</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-center my-4">
+                        <button onclick="convertVolume()" class="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <input type="number" id="volume-result" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-gray-100" readonly>
+                        <select id="volume-to" class="mt-4 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                            <option value="ml">Milliliter (ml)</option>
+                            <option value="l" selected>Liter (l)</option>
+                            <option value="m3">Cubic Meter (m³)</option>
+                            <option value="gal">Gallon (gal)</option>
+                            <option value="qt">Quart (qt)</option>
+                            <option value="pt">Pint (pt)</option>
+                            <option value="cup">Cup (cup)</option>
+                            <option value="fl-oz">Fluid Ounce (fl oz)</option>
+                            <option value="tbsp">Tablespoon (tbsp)</option>
+                            <option value="tsp">Teaspoon (tsp)</option>
+                            <option value="in3">Cubic Inch (in³)</option>
+                            <option value="ft3">Cubic Foot (ft³)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Speed Converter -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden converter-box">
+                <div class="bg-pink-500 text-white px-6 py-4">
+                    <h2 class="text-xl font-semibold">Speed Converter</h2>
+                    <div class="w-12 h-1 bg-pink-300 mt-2 rounded-full"></div>
+                </div>
+                <div class="p-6">
+                    <div class="relative">
+                        <input type="number" id="speed-value" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="Enter value" autocomplete="off">
+                        <select id="speed-from" class="mt-4 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                            <option value="mps" selected>Meter per second (m/s)</option>
+                            <option value="kph">Kilometer per hour (km/h)</option>
+                            <option value="mph">Mile per hour (mph)</option>
+                            <option value="knot">Knot (kn)</option>
+                            <option value="fps">Foot per second (ft/s)</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-center my-4">
+                        <button onclick="convertSpeed()" class="px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <input type="number" id="speed-result" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-100" readonly>
+                        <select id="speed-to" class="mt-4 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                            <option value="mps">Meter per second (m/s)</option>
+                            <option value="kph" selected>Kilometer per hour (km/h)</option>
+                            <option value="mph">Mile per hour (mph)</option>
+                            <option value="knot">Knot (kn)</option>
+                            <option value="fps">Foot per second (ft/s)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="gradient-bg text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>Developed by Fahim Bhuiyan © 2025</p>
+           
+        </div>
+    </footer>
+
+    <script>
+        // Length Conversion
+        const lengthConversion = {
+            mm: { cm: 0.1, m: 0.001, km: 0.000001, in: 0.0393701, ft: 0.00328084, yd: 0.00109361, mi: 0.000000621371 },
+            cm: { mm: 10, m: 0.01, km: 0.00001, in: 0.393701, ft: 0.0328084, yd: 0.0109361, mi: 0.00000621371 },
+            m: { mm: 1000, cm: 100, km: 0.001, in: 39.3701, ft: 3.28084, yd: 1.09361, mi: 0.000621371 },
+            km: { mm: 1000000, cm: 100000, m: 1000, in: 39370.1, ft: 3280.84, yd: 1093.61, mi: 0.621371 },
+            in: { mm: 25.4, cm: 2.54, m: 0.0254, km: 0.0000254, ft: 0.0833333, yd: 0.0277778, mi: 0.000015783 },
+            ft: { mm: 304.8, cm: 30.48, m: 0.3048, km: 0.0003048, in: 12, yd: 0.333333, mi: 0.000189394 },
+            yd: { mm: 914.4, cm: 91.44, m: 0.9144, km: 0.0009144, in: 36, ft: 3, mi: 0.000568182 },
+            mi: { mm: 1609340, cm: 160934, m: 1609.34, km: 1.60934, in: 63360, ft: 5280, yd: 1760 }
+        };
+
+        function convertLength() {
+            const value = document.getElementById('length-value').value;
+            const fromUnit = document.getElementById('length-from').value;
+            const toUnit = document.getElementById('length-to').value;
+            
+            if (value === '') {
+                alert('Please enter a value');
+                return;
+            }
+            
+            if (fromUnit === toUnit) {
+                document.getElementById('length-result').value = value;
+                return;
+            }
+            
+            let result;
+            if (lengthConversion[fromUnit] && lengthConversion[fromUnit][toUnit]) {
+                result = value * lengthConversion[fromUnit][toUnit];
+            } else {
+                // If no direct conversion, convert to meters first then to target unit
+                const inMeters = value * lengthConversion[fromUnit].m;
+                result = inMeters / lengthConversion[toUnit].m;
+            }
+            
+            document.getElementById('length-result').value = result.toFixed(6);
+        }
+
+        // Temperature Conversion
+        function convertTemperature() {
+            const value = parseFloat(document.getElementById('temp-value').value);
+            const fromUnit = document.getElementById('temp-from').value;
+            const toUnit = document.getElementById('temp-to').value;
+            
+            if (isNaN(value)) {
+                alert('Please enter a valid number');
+                return;
+            }
+            
+            let result;
+            // Convert to Celsius first
+            let celsius;
+            switch (fromUnit) {
+                case 'c':
+                    celsius = value;
+                    break;
+                case 'f':
+                    celsius = (value - 32) * 5/9;
+                    break;
+                case 'k':
+                    celsius = value - 273.15;
+                    break;
+            }
+            
+            // Then convert from Celsius to target unit
+            switch (toUnit) {
+                case 'c':
+                    result = celsius;
+                    break;
+                case 'f':
+                    result = (celsius * 9/5) + 32;
+                    break;
+                case 'k':
+                    result = celsius + 273.15;
+                    break;
+            }
+            
+            document.getElementById('temp-result').value = result.toFixed(2);
+        }
+
+        // Weight Conversion
+        const weightConversion = {
+            mg: { g: 0.001, kg: 0.000001, t: 1e-9, oz: 0.000035274, lb: 0.00000220462, st: 1.57473e-7 },
+            g: { mg: 1000, kg: 0.001, t: 0.000001, oz: 0.035274, lb: 0.00220462, st: 0.000157473 },
+            kg: { mg: 1000000, g: 1000, t: 0.001, oz: 35.274, lb: 2.20462, st: 0.157473 },
+            t: { mg: 1e9, g: 1000000, kg: 1000, oz: 35274, lb: 2204.62, st: 157.473 },
+            oz: { mg: 28349.5, g: 28.3495, kg: 0.0283495, t: 0.0000283495, lb: 0.0625, st: 0.00446429 },
+            lb: { mg: 453592, g: 453.592, kg: 0.453592, t: 0.000453592, oz: 16, st: 0.0714286 },
+            st: { mg: 6.35e+6, g: 6350.29, kg: 6.35029, t: 0.00635029, oz: 224, lb: 14 }
+        };
+
+        function convertWeight() {
+            const value = document.getElementById('weight-value').value;
+            const fromUnit = document.getElementById('weight-from').value;
+            const toUnit = document.getElementById('weight-to').value;
+            
+            if (value === '') {
+                alert('Please enter a value');
+                return;
+            }
+            
+            if (fromUnit === toUnit) {
+                document.getElementById('weight-result').value = value;
+                return;
+            }
+            
+            let result;
+            if (weightConversion[fromUnit] && weightConversion[fromUnit][toUnit]) {
+                result = value * weightConversion[fromUnit][toUnit];
+            } else {
+                // If no direct conversion, convert to kilograms first then to target unit
+                const inKg = value * weightConversion[fromUnit].kg;
+                result = inKg / weightConversion[toUnit].kg;
+            }
+            
+            document.getElementById('weight-result').value = result.toFixed(6);
+        }
+
+        // Area Conversion
+        const areaConversion = {
+            mm2: { cm2: 0.01, m2: 0.000001, ha: 1e-10, km2: 1e-12, in2: 0.00155, ft2: 0.0000107639, yd2: 0.00000119599, ac: 2.47105e-10, mi2: 3.86102e-13 },
+            cm2: { mm2: 100, m2: 0.0001, ha: 1e-8, km2: 1e-10, in2: 0.155, ft2: 0.00107639, yd2: 0.000119599, ac: 2.47105e-8, mi2: 3.86102e-11 },
+            m2: { mm2: 1000000, cm2: 10000, ha: 0.0001, km2: 0.000001, in2: 1550, ft2: 10.7639, yd2: 1.19599, ac: 0.000247105, mi2: 3.86102e-7 },
+            ha: { mm2: 1e10, cm2: 1e8, m2: 10000, km2: 0.01, in2: 1.55e7, ft2: 107639, yd2: 11959.9, ac: 2.47105, mi2: 0.00386102 },
+            km2: { mm2: 1e12, cm2: 1e10, m2: 1000000, ha: 100, in2: 1.55e9, ft2: 1.076e7, yd2: 1.196e6, ac: 247.105, mi2: 0.386102 },
+            in2: { mm2: 645.16, cm2: 6.4516, m2: 0.00064516, ha: 6.4516e-8, km2: 6.4516e-10, ft2: 0.00694444, yd2: 0.000771605, ac: 1.59423e-7, mi2: 2.49098e-10 },
+            ft2: { mm2: 92903, cm2: 929.03, m2: 0.092903, ha: 0.0000092903, km2: 9.2903e-8, in2: 144, yd2: 0.111111, ac: 0.0000229568, mi2: 3.58701e-8 },
+            yd2: { mm2: 836127, cm2: 8361.27, m2: 0.836127, ha: 0.0000836127, km2: 8.36127e-7, in2: 1296, ft2: 9, ac: 0.000206612, mi2: 3.22831e-7 },
+            ac: { mm2: 4.04686e9, cm2: 4.04686e7, m2: 4046.86, ha: 0.404686, km2: 0.00404686, in2: 6.273e6, ft2: 43560, yd2: 4840, mi2: 0.0015625 },
+            mi2: { mm2: 2.59e12, cm2: 2.59e10, m2: 2.59e6, ha: 259, km2: 2.59, in2: 4.014e9, ft2: 2.78784e7, yd2: 3.098e6, ac: 640 }
+        };
+
+        function convertArea() {
+            const value = document.getElementById('area-value').value;
+            const fromUnit = document.getElementById('area-from').value;
+            const toUnit = document.getElementById('area-to').value;
+            
+            if (value === '') {
+                alert('Please enter a value');
+                return;
+            }
+            
+            if (fromUnit === toUnit) {
+                document.getElementById('area-result').value = value;
+                return;
+            }
+            
+            let result;
+            if (areaConversion[fromUnit] && areaConversion[fromUnit][toUnit]) {
+                result = value * areaConversion[fromUnit][toUnit];
+            } else {
+                // If no direct conversion, convert to square meters first then to target unit
+                const inM2 = value * areaConversion[fromUnit].m2;
+                result = inM2 / areaConversion[toUnit].m2;
+            }
+            
+            document.getElementById('area-result').value = result.toFixed(6);
+        }
+
+        // Volume Conversion
+        const volumeConversion = {
+            ml: { l: 0.001, m3: 0.000001, gal: 0.000264172, qt: 0.00105669, pt: 0.00211338, cup: 0.00422675, floz: 0.033814, tbsp: 0.067628, tsp: 0.202884, in3: 0.0610237, ft3: 0.0000353147 },
+            l: { ml: 1000, m3: 0.001, gal: 0.264172, qt: 1.05669, pt: 2.11338, cup: 4.22675, floz: 33.814, tbsp: 67.628, tsp: 202.884, in3: 61.0237, ft3: 0.0353147 },
+            m3: { ml: 1000000, l: 1000, gal: 264.172, qt: 1056.69, pt: 2113.38, cup: 4226.75, floz: 33814, tbsp: 67628, tsp: 202884, in3: 61023.7, ft3: 35.3147 },
+            gal: { ml: 3785.41, l: 3.78541, m3: 0.00378541, qt: 4, pt: 8, cup: 16, floz: 128, tbsp: 256, tsp: 768, in3: 231, ft3: 0.133681 },
+            qt: { ml: 946.353, l: 0.946353, m3: 0.000946353, gal: 0.25, pt: 2, cup: 4, floz: 32, tbsp: 64, tsp: 192, in3: 57.75, ft3: 0.0334201 },
+            pt: { ml: 473.176, l: 0.473176, m3: 0.000473176, gal: 0.125, qt: 0.5, cup: 2, floz: 16, tbsp: 32, tsp: 96, in3: 28.875, ft3: 0.0167101 },
+            cup: { ml: 236.588, l: 0.236588, m3: 0.000236588, gal: 0.0625, qt: 0.25, pt: 0.5, floz: 8, tbsp: 16, tsp: 48, in3: 14.4375, ft3: 0.00835503 },
+            floz: { ml: 29.5735, l: 0.0295735, m3: 0.0000295735, gal: 0.0078125, qt: 0.03125, pt: 0.0625, cup: 0.125, tbsp: 2, tsp: 6, in3: 1.80469, ft3: 0.00104438 },
+            tbsp: { ml: 14.7868, l: 0.0147868, m3: 0.0000147868, gal: 0.00390625, qt: 0.015625, pt: 0.03125, cup: 0.0625, floz: 0.5, tsp: 3, in3: 0.902344, ft3: 0.000522189 },
+            tsp: { ml: 4.92892, l: 0.00492892, m3: 0.00000492892, gal: 0.00130208, qt: 0.00520833, pt: 0.0104167, cup: 0.0208333, floz: 0.166667, tbsp: 0.333333, in3: 0.300781, ft3: 0.000174063 },
+            in3: { ml: 16.3871, l: 0.0163871, m3: 0.0000163871, gal: 0.004329, qt: 0.017316, pt: 0.034632, cup: 0.0692641, floz: 0.554113, tbsp: 1.10823, tsp: 3.32468, ft3: 0.000578704 },
+            ft3: { ml: 28316.8, l: 28.3168, m3: 0.0283168, gal: 7.48052, qt: 29.9221, pt: 59.8442, cup: 119.688, floz: 957.506, tbsp: 1915.01, tsp: 5745.04, in3: 1728 }
+        };
+
+        function convertVolume() {
+            const value = document.getElementById('volume-value').value;
+            const fromUnit = document.getElementById('volume-from').value;
+            const toUnit = document.getElementById('volume-to').value;
+            
+            if (value === '') {
+                alert('Please enter a value');
+                return;
+            }
+            
+            if (fromUnit === toUnit) {
+                document.getElementById('volume-result').value = value;
+                return;
+            }
+            
+            let result;
+            if (volumeConversion[fromUnit] && volumeConversion[fromUnit][toUnit]) {
+                result = value * volumeConversion[fromUnit][toUnit];
+            } else {
+                // If no direct conversion, convert to liters first then to target unit
+                const inLiters = value * volumeConversion[fromUnit].l;
+                result = inLiters / volumeConversion[toUnit].l;
+            }
+            
+            document.getElementById('volume-result').value = result.toFixed(6);
+        }
+
+        // Speed Conversion
+        const speedConversion = {
+            mps: { kph: 3.6, mph: 2.23694, knot: 1.94384, fps: 3.28084 },
+            kph: { mps: 0.277778, mph: 0.621371, knot: 0.539957, fps: 0.911344 },
+            mph: { mps: 0.44704, kph: 1.60934, knot: 0.868976, fps: 1.46667 },
+            knot: { mps: 0.514444, kph: 1.852, mph: 1.15078, fps: 1.68781 },
+            fps: { mps: 0.3048, kph: 1.09728, mph: 0.681818, knot: 0.592484 }
+        };
+
+        function convertSpeed() {
+            const value = document.getElementById('speed-value').value;
+            const fromUnit = document.getElementById('speed-from').value;
+            const toUnit = document.getElementById('speed-to').value;
+            
+            if (value === '') {
+                alert('Please enter a value');
+                return;
+            }
+            
+            if (fromUnit === toUnit) {
+                document.getElementById('speed-result').value = value;
+                return;
+            }
+            
+            let result;
+            if (speedConversion[fromUnit] && speedConversion[fromUnit][toUnit]) {
+                result = value * speedConversion[fromUnit][toUnit];
+            } else {
+                // If no direct conversion, convert to meters per second first then to target unit
+                const inMPS = value * speedConversion[fromUnit].mps;
+                result = inMPS / speedConversion[toUnit].mps;
+            }
+            
+            document.getElementById('speed-result').value = result.toFixed(2);
+        }
+
+        // Set up event listeners for Enter key
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const parentBox = this.closest('.converter-box');
+                    const button = parentBox.querySelector('button');
+                    if (button) {
+                        button.click();
+                    }
+                }
+            });
+        });
+
+        // Auto-focus first input of each converter when clicking the box
+        document.querySelectorAll('.converter-box').forEach(box => {
+            box.addEventListener('click', function() {
+                const input = this.querySelector('input[type="number"]');
+                if (input) {
+                    input.focus();
+                }
+            });
+        });
+
+        // Initial conversions for demo
+        document.getElementById('length-value').value = '10';
+        convertLength();
+        
+        document.getElementById('temp-value').value = '100';
+        convertTemperature();
+        
+        document.getElementById('weight-value').value = '1';
+        convertWeight();
+        
+        document.getElementById('area-value').value = '1000';
+        convertArea();
+        
+        document.getElementById('volume-value').value = '1000';
+        convertVolume();
+        
+        document.getElementById('speed-value').value = '10';
+        convertSpeed();
+    </script>
+</body>
+</html>
